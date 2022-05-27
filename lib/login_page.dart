@@ -10,13 +10,21 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _snapConnected = false;
   bool _spotifyConnected = false;
+  bool _canSignUp = false;
   Widget _buildSnapchatButton() {
     return Container(
       margin: const EdgeInsets.only(top: 0, bottom: 7.5),
       height: 50,
       width: 270,
       child: ElevatedButton(
-        onPressed: () => print('Snapchat Button Pressed'),
+        onPressed: () => {
+          setState(() {
+            _snapConnected = true;
+            if (_spotifyConnected) {
+              _canSignUp = true;
+            }
+          })
+        },
         style: snapchatButtonStyle,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -42,7 +50,14 @@ class _LoginScreenState extends State<LoginScreen> {
       height: 50,
       width: 270,
       child: ElevatedButton(
-        onPressed: () => print('Spotify Button Pressed'),
+        onPressed: () => {
+          setState(() {
+            _spotifyConnected = true;
+            if (_snapConnected) {
+              _canSignUp = true;
+            }
+          })
+        },
         style: spotifyButtonStyle,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -62,6 +77,46 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+  Widget _buildSignUpButton() {
+    if (_canSignUp) {
+      return Container(
+        margin: const EdgeInsets.only(top: 7.5, bottom: 10.0),
+        height: 50,
+        width: 150,
+        child: ElevatedButton(
+          onPressed: () => {
+            print("Joe Mama")
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const <Widget>[
+              Text(
+                'Continue',
+                style: connectButtonTextStyle,
+              ),
+            ]
+          ),
+        ),
+      );
+    }
+    return const Text(
+      'Connect your Snapchat and Spotify accounts to get started!',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        color: Colors.white,
+        fontFamily: 'OpenSans',
+        fontSize: 20.0,
+        fontWeight: FontWeight.bold,
+        shadows: [
+          Shadow(
+            blurRadius: 6,
+            color: darkGray,
+          )
+        ]
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -95,11 +150,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'OpenSans',
-                          fontSize: 30.0,
+                          fontSize: 50.0,
                           fontWeight: FontWeight.bold,
                           shadows: [
                             Shadow(
-                              blurRadius: 10,
+                              blurRadius: 6,
                               color: darkGray,
                             )
                           ]
@@ -108,6 +163,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 20.0),
                       _buildSnapchatButton(),
                       _buildSpotifyButton(),
+                      const SizedBox(height: 10.0),
+                      _buildSignUpButton(),
                     ],
                   ),
                 ),
