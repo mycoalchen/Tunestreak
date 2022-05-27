@@ -23,24 +23,15 @@ final kBoxDecorationStyle = BoxDecoration(
   ],
 );
 
-final snapchatButtonStyle = ButtonStyle(
+final loginButtonStyle = ButtonStyle(
   backgroundColor: MaterialStateProperty.all(darkGray),
   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
     RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10.0),
     )
   ),
-  // shadowColor: MaterialStateProperty.all(Color(0xffFFFC00)),
-);
-
-final spotifyButtonStyle = ButtonStyle(
-  backgroundColor: MaterialStateProperty.all(darkGray),
-  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-    RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10.0),
-    )
-  ),
-  // shadowColor: MaterialStateProperty.all(Color(0xff1DB954)),
+  // Shadow shadowColor: MaterialStateProperty.all(Color(0xffFFFC00)),
+  // Spotify shadowColor: MaterialStateProperty.all(Color(0xff1DB954)),
 );
 
 const connectButtonTextStyle = TextStyle(
