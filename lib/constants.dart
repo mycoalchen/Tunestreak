@@ -24,23 +24,23 @@ final kBoxDecorationStyle = BoxDecoration(
 );
 
 final snapchatButtonStyle = ButtonStyle(
-  backgroundColor: MaterialStateProperty.all(Colors.black),
+  backgroundColor: MaterialStateProperty.all(darkGray),
   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
     RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10.0),
     )
   ),
-  shadowColor: MaterialStateProperty.all(Colors.black),
+  // shadowColor: MaterialStateProperty.all(Color(0xffFFFC00)),
 );
 
 final spotifyButtonStyle = ButtonStyle(
-  backgroundColor: MaterialStateProperty.all(Colors.black),
+  backgroundColor: MaterialStateProperty.all(darkGray),
   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
     RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10.0),
     )
   ),
-  shadowColor: MaterialStateProperty.all(Colors.black),
+  // shadowColor: MaterialStateProperty.all(Color(0xff1DB954)),
 );
 
 const connectButtonTextStyle = TextStyle(
@@ -49,10 +49,13 @@ const connectButtonTextStyle = TextStyle(
     Shadow( // bottomLeft
           offset: Offset(0, 0),
           blurRadius: 4,
-          color: Colors.black
+          color: Colors.black,
         ),
   ],
   fontSize: 22.0,
   fontWeight: FontWeight.bold,
   fontFamily: 'Roboto',
 );
+
+const teal = Color(0xff2bd4b2);
+const darkGray = Color.fromRGBO(30, 30, 30, 1);
