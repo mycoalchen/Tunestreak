@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tunestreak/homeAppBar.dart';
 import 'add_friends.dart';
 import 'streaks.dart';
 
@@ -48,8 +49,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
+      appBar: HomeAppBar(
+        title: homeNavBarItems[_selectedIndex].label,
       ),
       body: Center(
         child: _pages.elementAt(_selectedIndex),
