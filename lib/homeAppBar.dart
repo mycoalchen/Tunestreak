@@ -5,7 +5,6 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   AppBar appBar = new AppBar();
 
-  var circleColor = Color.fromRGBO(200, 200, 200, 1);
   final String? title;
   HomeAppBar({@required this.title});
 
@@ -13,20 +12,27 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       centerTitle: false,
+      automaticallyImplyLeading: false,
       backgroundColor: Colors.white,
       elevation: 1,
       title: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          CircleAvatar(
-            backgroundColor: circleColor,
-            child: const Icon(
-              Icons.search,
-              color: darkGray,
+          InkWell(
+            onTap: () => print('me tapped'),
+            highlightColor: Colors.transparent,
+            splashColor: Colors.transparent,
+            child: Container(
+              width: 40.0,
+              height: 40.0,
+              padding: const EdgeInsets.all(0),
+              margin: const EdgeInsets.all(0),
+              decoration: circleInkwellBoxDecoration,
+              child: const CircleAvatar(
+                backgroundColor: circleColor,
+                // TODO: backgroundImage
+              ),
             ),
-          ),
-          const SizedBox(
-            width: 30,
           ),
           Text(
             title ?? 'No title given',
@@ -36,35 +42,15 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               fontSize: 20,
             ),
           ),
+          const CircleAvatar(
+            backgroundColor: circleColor,
+            child: Icon(
+              Icons.more_horiz,
+              color: darkGray,
+            ),
+          ),
         ],
       ),
-      leading: Padding(
-        padding: const EdgeInsets.all(8),
-        child: CircleAvatar(
-          backgroundColor: circleColor,
-          // TODO: Snap bitmoji here backgroundImage: NetworkImage()
-        ),
-      ),
-      actions: <Widget>[
-        CircleAvatar(
-          backgroundColor: circleColor,
-          child: const Icon(
-            Icons.person_add,
-            color: darkGray,
-          ),
-        ),
-        const SizedBox(width: 6),
-        CircleAvatar(
-          backgroundColor: circleColor,
-          child: const Icon(
-            Icons.settings,
-            color: darkGray,
-          ),
-        ),
-        const SizedBox(
-          width: 5,
-        )
-      ]
     );
   }
 
