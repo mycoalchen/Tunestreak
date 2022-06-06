@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tunestreak/homeAppBar.dart';
+import 'package:tunestreak/home_app_bar.dart';
 import 'add_friends.dart';
 import 'streaks.dart';
 
@@ -11,6 +11,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+
+  Duration pageTurnDuration = const Duration(milliseconds: 300);
+  Curve pageTurnCurve = Curves.ease;
+  final PageController _controller = PageController(initialPage: 0);
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   final List<BottomNavigationBarItem> homeNavBarItems = <BottomNavigationBarItem>[
     const BottomNavigationBarItem(
@@ -35,15 +45,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     super.initState();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      _controller.jumpToPage(index);
     });
+  }
+
+  void _goForward() {
+    _controller.nextPage(duration: pageTurnDuration, curve: pageTurnCurve);
+    
+  }
+  void _goBack() {
+    _controller.previousPage(duration: pageTurnDuration, curve: pageTurnCurve);
   }
 
   @override
@@ -52,8 +66,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       appBar: HomeAppBar(
         title: homeNavBarItems[_selectedIndex].label,
       ),
-      body: Center(
-        child: _pages.elementAt(_selectedIndex),
+      body: GestureDetector(
+        onHorizontalDragEnd: (dragEndDetails) {
+          if (dragEndDetails.primaryVelocity !< 0) { _goForward(); }
+          else if (dragEndDetails.primaryVelocity !> 0) { _goBack(); }
+        },
+        child: PageView.builder(
+          onPageChanged: (newPage) {
+            setState((){
+              _selectedIndex = newPage;
+            });
+          },
+          itemCount: 2,
+          controller: _controller,
+          physics: const NeverScrollableScrollPhysics(),
+          itemBuilder: (context, index) {
+            return Center(child: _pages.elementAt(_selectedIndex));
+          }
+        )
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: homeNavBarItems,
