@@ -49,3 +49,5 @@ app.*.map.json
 # firebase options (containing keys)
 firebase_options.dart
 google-services.json
+
+keys
