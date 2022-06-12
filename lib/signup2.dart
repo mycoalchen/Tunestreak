@@ -1,37 +1,15 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart';
 import 'constants.dart';
 import 'home.dart';
 
-class Signup extends StatefulWidget {
+class Signup2 extends StatefulWidget {
   @override
-  _SignupState createState() => _SignupState();
+  _Signup2State createState() => _Signup2State();
 }
 
-class _SignupState extends State<Signup> {
-  bool _spotifyConnected = false;
+class _Signup2State extends State<Signup2> {
   bool _canSignUp = false;
-  String serverResponse = 'Server Response';
-
-  String _localhost() {
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:3000';
-    }
-    else {
-      return 'http://localhost:3000';
-    }
-  }
-
-  _makeGetRequest() async {
-    final url = Uri.parse(_localhost());
-    // Send a GET request to the url
-    Response response = await get(url);
-    setState(() {
-      serverResponse = response.body;
-    });
-  }
 
   Widget _buildSpotifyButton() {
     return Container(
@@ -40,7 +18,8 @@ class _SignupState extends State<Signup> {
       width: 270,
       child: ElevatedButton(
         onPressed: () => {
-          _makeGetRequest()
+          
+          // TODO: Set _canSignUp depending on whether this Spotify account already has a Tunestreak account
         },
         style: loginButtonStyle,
         child: Row(
@@ -51,10 +30,9 @@ class _SignupState extends State<Signup> {
               fit: BoxFit.contain,
               height: 30,
             ),
-            const SizedBox(width: 8),
-            Text(
-              //'Connect Spotify',
-              serverResponse,
+            const SizedBox(width: 16),
+            const Text(
+              'Connect Spotify',
               style: connectButtonTextStyle,
             ),
           ]

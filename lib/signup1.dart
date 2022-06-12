@@ -1,15 +1,38 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:web_socket_channel/io.dart';
 import 'constants.dart';
 import 'home.dart';
 
-class ConnectSpotifyScreen extends StatefulWidget {
+class Signup1 extends StatefulWidget {
   @override
-  _ConnectSpotifyScreenState createState() => _ConnectSpotifyScreenState();
+  _Signup1State createState() => _Signup1State();
 }
 
-class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
+class _Signup1State extends State<Signup1> {
+  bool _spotifyConnected = false;
   bool _canSignUp = false;
+  String serverResponse = 'Server Response';
+
+  void sendMessage(msg) {
+    print('Called sendMessage with msg ' + msg);
+    IOWebSocketChannel? channel;
+    try {
+      channel = IOWebSocketChannel.connect('ws://10.0.2.2:3080');
+    } catch (e) {
+      print("Error on connecting to websocket: " + e.toString());
+    }
+    // // send message msg
+    channel?.sink.add(msg);
+    // // listen for event - print the event and close the channel if we get it
+    channel?.stream.listen((event) {
+      if (event!.isNotEmpty) {
+        print(event);
+        channel!.sink.close();
+      }
+    });
+  }
 
   Widget _buildSpotifyButton() {
     return Container(
@@ -18,8 +41,7 @@ class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
       width: 270,
       child: ElevatedButton(
         onPressed: () => {
-          
-          // TODO: Set _canSignUp depending on whether this Spotify account already has a Tunestreak account
+          sendMessage("Hello there")
         },
         style: loginButtonStyle,
         child: Row(
@@ -30,9 +52,10 @@ class _ConnectSpotifyScreenState extends State<ConnectSpotifyScreen> {
               fit: BoxFit.contain,
               height: 30,
             ),
-            const SizedBox(width: 16),
-            const Text(
-              'Connect Spotify',
+            const SizedBox(width: 8),
+            Text(
+              //'Connect Spotify',
+              serverResponse,
               style: connectButtonTextStyle,
             ),
           ]
