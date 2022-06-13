@@ -7,15 +7,18 @@
  * https://developer.spotify.com/web-api/authorization-guide/#authorization_code_flow
  */
 
-var express = require('express'); // Express web server framework
-var request = require('request'); // "Request" library
-var cors = require('cors');
-var querystring = require('querystring');
-var cookieParser = require('cookie-parser');
+import { spotify_client_id, spotify_client_secret, spotify_redirect_uri } from './config.js';
+import express from 'express';
+import request from 'request';
+import cors from 'cors';
+import querystring from 'querystring';
+import cookieParser from 'cookie-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-var client_id = 'CLIENT_ID'; // Your client id
-var client_secret = 'CLIENT_SECRET'; // Your secret
-var redirect_uri = 'REDIRECT_URI'; // Your redirect uri
+var client_id = spotify_client_id; // Your client id
+var client_secret = spotify_client_secret; // Your secret
+var redirect_uri = spotify_redirect_uri; // Your redirect uri
 
 /**
  * Generates a random string containing numbers and letters
@@ -36,11 +39,13 @@ var stateKey = 'spotify_auth_state';
 
 var app = express();
 
-app.use(express.static(__dirname + '/public'))
+const __filename = fileURLToPath(import.meta.url);
+
+app.use(express.static(path.dirname(__filename) + '/public'))
    .use(cors())
    .use(cookieParser());
 
-app.get('/login', function(req, res) {
+app.get('/', function(req, res) {
 
   var state = generateRandomString(16);
   res.cookie(stateKey, state);

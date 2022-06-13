@@ -1,9 +1,14 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:web_socket_channel/io.dart';
+import 'package:spotify/spotify.dart' as spt;
+import 'package:webview_flutter/webview_flutter.dart';
+import 'dart:io';
 import 'constants.dart';
 import 'home.dart';
+import 'config.dart';
+import 'spotify_login_webview.dart';
+
 
 class Signup1 extends StatefulWidget {
   @override
@@ -11,9 +16,26 @@ class Signup1 extends StatefulWidget {
 }
 
 class _Signup1State extends State<Signup1> {
+  var authUri;
+
   bool _spotifyConnected = false;
   bool _canSignUp = false;
   String serverResponse = 'Server Response';
+
+  // copied from https://github.com/rinukkusu/spotify-dart
+  Future<void> initializeSpotifyStuff () async {
+    final credentials = spt.SpotifyApiCredentials(spotifyClientId, spotifyClientSecret);
+    final grant = spt.SpotifyApi.authorizationCodeGrant(credentials);
+    final redirectUri = spotifyRedirectUri;
+    final scopes = ['user-read-email', 'user-library-read'];
+    authUri = grant.getAuthorizationUrl(
+      Uri.parse(redirectUri),
+      scopes: scopes,
+    );
+    // TODO: implement listen
+    final responseUri = await listen(redirectUri);
+    final spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri);
+  }
 
   void sendMessage(msg) {
     print('Called sendMessage with msg ' + msg);
@@ -33,6 +55,15 @@ class _Signup1State extends State<Signup1> {
       }
     });
   }
+  
+  // copied from https://medium.com/@ekosuprastyo15/webview-in-flutter-example-a11a24eb617f
+  void _handleSpotifyButtonPress(BuildContext context) async {
+    await initializeSpotifyStuff();
+    if (!mounted) return;
+    Navigator.push(context, 
+      MaterialPageRoute(builder: ((context) => 
+      WebViewContainer(authUri))));
+  }
 
   Widget _buildSpotifyButton() {
     return Container(
@@ -41,7 +72,7 @@ class _Signup1State extends State<Signup1> {
       width: 270,
       child: ElevatedButton(
         onPressed: () => {
-          sendMessage("Hello there")
+          _handleSpotifyButtonPress(context)
         },
         style: loginButtonStyle,
         child: Row(

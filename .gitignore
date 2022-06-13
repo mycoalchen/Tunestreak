@@ -61,3 +61,5 @@ node_server/node_modules
 
 # dotenv environment variables file
 .env
+
+config.dart
