@@ -23,21 +23,6 @@ class _Signup1State extends State<Signup1> {
   bool _canSignUp = false;
   String serverResponse = 'Server Response';
 
-  // copied from https://github.com/rinukkusu/spotify-dart
-  Future<void> initializeSpotifyStuff () async {
-    final credentials = spt.SpotifyApiCredentials(spotifyClientId, spotifyClientSecret);
-    final grant = spt.SpotifyApi.authorizationCodeGrant(credentials);
-    final redirectUri = spotifyRedirectUri;
-    final scopes = ['user-read-email', 'user-library-read'];
-    authUri = grant.getAuthorizationUrl(
-      Uri.parse(redirectUri),
-      scopes: scopes,
-    );
-    // TODO: implement listen
-    // final responseUri = await listen(redirectUri);
-    // final spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri);
-  }
-
   void sendMessage(msg) {
     print('Called sendMessage with msg ' + msg);
     IOWebSocketChannel? channel;
@@ -57,13 +42,29 @@ class _Signup1State extends State<Signup1> {
     });
   }
   
+  // copied from https://github.com/rinukkusu/spotify-dart
   // copied from https://medium.com/@ekosuprastyo15/webview-in-flutter-example-a11a24eb617f
-  void _handleSpotifyButtonPress(BuildContext context) async {
-    await initializeSpotifyStuff();
+  Future<void> _handleSpotifyButtonPress(BuildContext context) async {
+
+    const redirectUri = spotifyRedirectUri;
+
+    final credentials = spt.SpotifyApiCredentials(spotifyClientId, spotifyClientSecret);
+    final grant = spt.SpotifyApi.authorizationCodeGrant(credentials);
+    final scopes = ['user-read-email', 'user-library-read'];
+    authUri = grant.getAuthorizationUrl(
+      Uri.parse(redirectUri),
+      scopes: scopes,
+    );
+
+    // fixes issue of passing BuildContext through async
     if (!mounted) return;
+    // Must use wrapper to pass by reference (need to edit responseUri in WebViewContainer navigationDelegate)
+    ResponseUriWrapper responseUri = ResponseUriWrapper('');
     Navigator.of(context).push(SwipeablePageRoute(
-      builder: (BuildContext context) => WebViewContainer(authUri.toString()),
+      builder: (BuildContext context) => WebViewContainer(authUri.toString(), responseUri),
     ));
+    print("value = " + responseUri.value); 
+    final spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.value);
   }
 
   Widget _buildSpotifyButton() {

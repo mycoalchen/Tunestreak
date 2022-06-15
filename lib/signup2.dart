@@ -32,7 +32,7 @@ class _Signup2State extends State<Signup2> {
             ),
             const SizedBox(width: 16),
             const Text(
-              'Connect Spotify',
+              'Connect Drugs',
               style: connectButtonTextStyle,
             ),
           ]
