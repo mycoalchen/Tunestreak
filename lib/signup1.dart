@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:spotify/spotify.dart' as spt;
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:swipeable_page_route/swipeable_page_route.dart';
 import 'dart:io';
 import 'constants.dart';
 import 'home.dart';
@@ -33,8 +34,8 @@ class _Signup1State extends State<Signup1> {
       scopes: scopes,
     );
     // TODO: implement listen
-    final responseUri = await listen(redirectUri);
-    final spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri);
+    // final responseUri = await listen(redirectUri);
+    // final spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri);
   }
 
   void sendMessage(msg) {
@@ -60,9 +61,9 @@ class _Signup1State extends State<Signup1> {
   void _handleSpotifyButtonPress(BuildContext context) async {
     await initializeSpotifyStuff();
     if (!mounted) return;
-    Navigator.push(context, 
-      MaterialPageRoute(builder: ((context) => 
-      WebViewContainer(authUri))));
+    Navigator.of(context).push(SwipeablePageRoute(
+      builder: (BuildContext context) => WebViewContainer(authUri.toString()),
+    ));
   }
 
   Widget _buildSpotifyButton() {
