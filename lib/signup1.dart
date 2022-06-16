@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:spotify/spotify.dart' as spt;
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:swipeable_page_route/swipeable_page_route.dart';
 import 'dart:io';
 import 'constants.dart';
@@ -22,6 +22,7 @@ class _Signup1State extends State<Signup1> {
   bool _spotifyConnected = false;
   bool _canSignUp = false;
   String serverResponse = 'Server Response';
+
 
   void sendMessage(msg) {
     print('Called sendMessage with msg ' + msg);
@@ -45,6 +46,10 @@ class _Signup1State extends State<Signup1> {
   // copied from https://github.com/rinukkusu/spotify-dart
   // copied from https://medium.com/@ekosuprastyo15/webview-in-flutter-example-a11a24eb617f
   Future<void> _handleSpotifyButtonPress(BuildContext context) async {
+
+    if (Platform.isAndroid) {
+      await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);
+    }
 
     const redirectUri = spotifyRedirectUri;
 
