@@ -8,7 +8,7 @@ import 'dart:io';
 import 'constants.dart';
 import 'home.dart';
 import 'config.dart';
-import 'spotify_login_webview.dart';
+import 'login_webview.dart';
 
 
 class Signup1 extends StatefulWidget {
@@ -22,7 +22,6 @@ class _Signup1State extends State<Signup1> {
   bool _spotifyConnected = false;
   bool _canSignUp = false;
   String serverResponse = 'Server Response';
-
 
   void sendMessage(msg) {
     print('Called sendMessage with msg ' + msg);
@@ -47,29 +46,29 @@ class _Signup1State extends State<Signup1> {
   // copied from https://medium.com/@ekosuprastyo15/webview-in-flutter-example-a11a24eb617f
   Future<void> _handleSpotifyButtonPress(BuildContext context) async {
 
-    if (Platform.isAndroid) {
-      await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);
-    }
-
-    const redirectUri = spotifyRedirectUri;
-
     final credentials = spt.SpotifyApiCredentials(spotifyClientId, spotifyClientSecret);
     final grant = spt.SpotifyApi.authorizationCodeGrant(credentials);
     final scopes = ['user-read-email', 'user-library-read'];
     authUri = grant.getAuthorizationUrl(
-      Uri.parse(redirectUri),
+      Uri.parse(spotifyRedirectUri),
       scopes: scopes,
     );
 
     // fixes issue of passing BuildContext through async
-    if (!mounted) return;
+    if (!mounted) return;    
+    ResponseUriWrapper responseUri = ResponseUriWrapper('default');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AuthWebView(authUri.toString(), spotifyRedirectUri, responseUri)),
+    );
     // Must use wrapper to pass by reference (need to edit responseUri in WebViewContainer navigationDelegate)
-    ResponseUriWrapper responseUri = ResponseUriWrapper('');
-    Navigator.of(context).push(SwipeablePageRoute(
-      builder: (BuildContext context) => WebViewContainer(authUri.toString(), responseUri),
-    ));
-    print("value = " + responseUri.value); 
-    final spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.value);
+    // Navigator.of(context).push(SwipeablePageRoute(
+    //   builder: (BuildContext context) => WebViewContainer(authUri.toString(), responseUri),
+    // // ));
+    if (responseUri.value != null) {
+      print("value = ${responseUri.value}"); 
+    }
+    // final spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.value);
   }
 
   Widget _buildSpotifyButton() {
