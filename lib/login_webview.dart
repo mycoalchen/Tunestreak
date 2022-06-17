@@ -6,9 +6,16 @@ import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
 import 'constants.dart';
 
-class ResponseUriWrapper {
-  String? value;
-  ResponseUriWrapper(this.value);
+class ResponseUriWrapper extends ChangeNotifier {
+  String? _value;
+  ResponseUriWrapper(this._value);
+  void setValue(String value) {
+    _value = value;
+    notifyListeners();
+  }
+  String? getValue() {
+    return _value;
+  } 
 }
 
 class AuthWebView extends StatefulWidget {
@@ -99,31 +106,13 @@ class _AuthWebViewState extends State<AuthWebView> {
                               resources: resources,
                               action: PermissionRequestResponseAction.GRANT);
                         },
-                        // shouldOverrideUrlLoading: (controller, navigationAction) async {
-                        //   var uri = navigationAction.request.url!;
-
-                        //   if (![ "http", "https", "file", "chrome",
-                        //     "data", "javascript", "about"].contains(uri.scheme)) {
-                        //     if (await canLaunch(url)) {
-                        //       // Launch the App
-                        //       await launch(
-                        //         url,
-                        //       );
-                        //       // and cancel the request
-                        //       return NavigationActionPolicy.CANCEL;
-                        //     }
-                        //   }
-
-                        //   return NavigationActionPolicy.ALLOW;
-                        // },
                         onLoadStop: (controller, url) async {
                           pullToRefreshController.endRefreshing();
                           setState(() {
                             this.url = url.toString();
                             urlController.text = this.url;
                             if (this.url.startsWith(widget.redirectUri)) {
-                              print('Called this part');
-                              widget.responseUriWrapper.value = this.url;
+                              widget.responseUriWrapper.setValue(this.url);
                               Navigator.pop(context);
                             }
                           });

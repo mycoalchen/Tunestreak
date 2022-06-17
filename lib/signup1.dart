@@ -19,9 +19,11 @@ class Signup1 extends StatefulWidget {
 class _Signup1State extends State<Signup1> {
   var authUri;
 
+  late spt.SpotifyApi spotify;
+
   bool _spotifyConnected = false;
   bool _canSignUp = false;
-  String serverResponse = 'Server Response';
+  String serverResponse = 'Connect Spotify';
 
   void sendMessage(msg) {
     print('Called sendMessage with msg ' + msg);
@@ -54,21 +56,22 @@ class _Signup1State extends State<Signup1> {
       scopes: scopes,
     );
 
-    // fixes issue of passing BuildContext through async
+    // !mounted fixes issue of passing BuildContext through async
     if (!mounted) return;    
     ResponseUriWrapper responseUri = ResponseUriWrapper('default');
+    responseUri.addListener(() async {
+      if (responseUri.getValue() != 'default') {
+        setState(() {
+          spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.getValue().toString());
+        });
+        spt.UserPublic user = await spotify.me.get();
+        print("displayName: " + user.displayName.toString());
+      }
+    });
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AuthWebView(authUri.toString(), spotifyRedirectUri, responseUri)),
     );
-    // Must use wrapper to pass by reference (need to edit responseUri in WebViewContainer navigationDelegate)
-    // Navigator.of(context).push(SwipeablePageRoute(
-    //   builder: (BuildContext context) => WebViewContainer(authUri.toString(), responseUri),
-    // // ));
-    if (responseUri.value != null) {
-      print("value = ${responseUri.value}"); 
-    }
-    // final spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.value);
   }
 
   Widget _buildSpotifyButton() {
