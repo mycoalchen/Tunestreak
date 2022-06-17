@@ -97,6 +97,10 @@ class _AuthWebViewState extends State<AuthWebView> {
                         },
                         onLoadStart: (controller, url) {
                           setState(() {
+                            if (url.toString().startsWith(widget.redirectUri)) {
+                              widget.responseUriWrapper.setValue(this.url);
+                              controller.goBack();
+                            }
                             this.url = url.toString();
                             urlController.text = this.url;
                           });
@@ -113,7 +117,7 @@ class _AuthWebViewState extends State<AuthWebView> {
                             urlController.text = this.url;
                             if (this.url.startsWith(widget.redirectUri)) {
                               widget.responseUriWrapper.setValue(this.url);
-                              Navigator.pop(context);
+                              controller.goBack();
                             }
                           });
                         },

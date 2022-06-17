@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:tunestreak/signup2.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:spotify/spotify.dart' as spt;
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -64,8 +65,10 @@ class _Signup1State extends State<Signup1> {
         setState(() {
           spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.getValue().toString());
         });
-        spt.UserPublic user = await spotify.me.get();
-        print("displayName: " + user.displayName.toString());
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Signup2())
+        );
       }
     });
     Navigator.push(
