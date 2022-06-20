@@ -62,9 +62,16 @@ const connectButtonTextStyle = TextStyle(
   fontFamily: 'Roboto',
 );
 
-var circleInkwellBoxDecoration = BoxDecoration(
+const circleInkwellBoxDecoration = BoxDecoration(
   color: circleColor,
   shape: BoxShape.circle,
+);
+
+InputDecoration inputBoxDecoration(String? label) => InputDecoration(
+  fillColor: Colors.white,
+  filled: true,
+  labelText: label,
+  contentPadding: const EdgeInsets.all(10.0),
 );
 
 const circleColor = Color.fromRGBO(210, 210, 210, 1);
