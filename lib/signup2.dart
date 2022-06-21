@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:spotify/spotify.dart' as spt;
+import 'spotify_provider.dart';
 import 'constants.dart';
 import 'home.dart';
 
@@ -12,10 +15,19 @@ class _Signup2State extends State<Signup2> {
 
   final _formKey = GlobalKey<FormState>();
 
-  Widget buildEmailFormField() => TextFormField(
-    validator: validateEmail,
-    decoration: inputBoxDecoration('Email'),
-  );
+  Future<spt.User> getSpotifyUser() async {
+    print('Called getSpotifyUserEmail');
+    SpotifyProvider spotifyProvider = Provider.of<SpotifyProvider>(context, listen: false);
+    spt.User user = await spotifyProvider.spotify.me.get();
+    return user;
+  }
+
+  Widget buildEmailFormField() { 
+    return TextFormField(
+      validator: validateEmail,
+      decoration: inputBoxDecoration('Email'),
+    );
+  }
   Widget buildUsernameFormField() => TextFormField(
     validator: validateUsername,
     decoration: inputBoxDecoration('Username'),
@@ -24,12 +36,24 @@ class _Signup2State extends State<Signup2> {
     validator: validateName,
     decoration: inputBoxDecoration('Name'),
   );
+  Widget buildPasswordFormField() => TextFormField(
+    validator: validateName,
+    decoration: inputBoxDecoration('Password'),
+    obscureText: true,
+  );
+  Widget buildConfirmPasswordFormField() => TextFormField(
+    validator: validateName,
+    decoration: inputBoxDecoration('Confirm Password'),
+    obscureText: true,
+  );
+
   Widget buildSignupBotton() => Container(
     height: 50,
     width: 150,
     child: ElevatedButton(
       onPressed: () => {
         if (_formKey.currentState!.validate()) {
+          
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -82,6 +106,7 @@ class _Signup2State extends State<Signup2> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: DO SMTHN WITH FUTUREBUILDER TO PRINT SPOTIFY USER EMAIL
     return Scaffold(
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
@@ -126,14 +151,19 @@ class _Signup2State extends State<Signup2> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 20.0),
+                        const SizedBox(height: 30.0),
                         buildEmailFormField(),
                         const SizedBox(height: 10.0),
                         buildUsernameFormField(),
                         const SizedBox(height: 10.0),
                         buildNameFormField(),
-                        const SizedBox(height: 20.0),
+                        const SizedBox(height: 30.0),
+                        buildPasswordFormField(),
+                        const SizedBox(height: 10.0),
+                        buildConfirmPasswordFormField(),
+                        const SizedBox(height: 30.0),
                         buildSignupBotton(),
+                        
                       ],
                     ),
                   ),

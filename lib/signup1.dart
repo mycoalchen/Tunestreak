@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tunestreak/signup2.dart';
+import 'package:tunestreak/spotify_provider.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:spotify/spotify.dart' as spt;
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:swipeable_page_route/swipeable_page_route.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'constants.dart';
 import 'home.dart';
 import 'config.dart';
 import 'login_webview.dart';
+
 
 
 class Signup1 extends StatefulWidget {
@@ -20,9 +25,6 @@ class Signup1 extends StatefulWidget {
 class _Signup1State extends State<Signup1> {
   var authUri;
 
-  late spt.SpotifyApi spotify;
-
-  bool _spotifyConnected = false;
   bool _canSignUp = false;
   String serverResponse = 'Connect Spotify';
 
@@ -47,7 +49,7 @@ class _Signup1State extends State<Signup1> {
   
   // copied from https://github.com/rinukkusu/spotify-dart
   // copied from https://medium.com/@ekosuprastyo15/webview-in-flutter-example-a11a24eb617f
-  Future<void> _handleSpotifyButtonPress(BuildContext context) async {
+  Future<void> _handleSpotifyButtonPress(BuildContext context, SpotifyProvider spotifyProvider) async {
 
     final credentials = spt.SpotifyApiCredentials(spotifyClientId, spotifyClientSecret);
     final grant = spt.SpotifyApi.authorizationCodeGrant(credentials);
@@ -62,9 +64,9 @@ class _Signup1State extends State<Signup1> {
     ResponseUriWrapper responseUri = ResponseUriWrapper('default');
     responseUri.addListener(() async {
       if (responseUri.getValue() != 'default') {
-        setState(() {
-          spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.getValue().toString());
-        });
+        // This code called after login_webview redirects to repsponse Uri
+        spt.SpotifyApi spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.getValue()!);
+        spotifyProvider.setSpotify(spotify);
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => Signup2())
@@ -77,14 +79,14 @@ class _Signup1State extends State<Signup1> {
     );
   }
 
-  Widget _buildSpotifyButton() {
+  Widget _buildSpotifyButton(SpotifyProvider spotifyProvider) {
     return Container(
     margin: const EdgeInsets.only(top: 7.5, bottom: 10.0),
       height: 50,
       width: 270,
       child: ElevatedButton(
         onPressed: () => {
-          _handleSpotifyButtonPress(context)
+          _handleSpotifyButtonPress(context, spotifyProvider)
         },
         style: loginButtonStyle,
         child: Row(
@@ -106,31 +108,7 @@ class _Signup1State extends State<Signup1> {
       ),
     );
   }
-  Widget _buildSignUpButton() {
-    if (_canSignUp) {
-      return Container(
-        height: 50,
-        width: 150,
-        child: ElevatedButton(
-          onPressed: () => {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            )
-          },
-          style: loginButtonStyle,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const <Widget>[
-              Text(
-                'Continue',
-                style: connectButtonTextStyle,
-              ),
-            ]
-          ),
-        ),
-      );
-    }
+  Widget _buildSignupText() {
     return const Text(
       'Connect your Spotify account to get started.',
       textAlign: TextAlign.center,
@@ -193,9 +171,11 @@ class _Signup1State extends State<Signup1> {
                         ),
                       ),
                       const SizedBox(height: 10.0),
-                      _buildSpotifyButton(),
+                      Consumer<SpotifyProvider>(
+                        builder: (context, spotifyProvider, child) => _buildSpotifyButton(spotifyProvider),
+                      ),
                       const SizedBox(height: 10.0),
-                      _buildSignUpButton(),
+                      _buildSignupText(),
                     ],
                   ),
                 ),
