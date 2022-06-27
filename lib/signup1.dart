@@ -67,6 +67,8 @@ class _Signup1State extends State<Signup1> {
         // This code called after login_webview redirects to repsponse Uri
         spt.SpotifyApi spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.getValue()!);
         spotifyProvider.setSpotify(spotify);
+        spt.User spotifyUser = await spotify.me.get();
+        print('Spotify user: ' + spotifyUser.displayName.toString());
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => Signup2())
