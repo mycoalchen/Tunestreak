@@ -76,12 +76,9 @@ class _Signup1State extends State<Signup1> {
       responseUri.addListener(() async {
         if (responseUri.getValue() != 'default') {
           // This code called after login_webview redirects to response Uri
-          print("responseUri: " + responseUri.getValue()!);
           spt.SpotifyApi spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.getValue()!);
-          spt.UserPublic user = await spotify.me.get();
-          print("displayName: " + user.displayName!);
+          spotifyProvider.setUser(await spotify.me.get());
           spotifyProvider.setSpotify(spotify);
-          print("Set Spotify in spotifyProvider");
           // Save credentials to storage
           await saveSpotifyCredentials(spotify);
           if (!mounted) return;
@@ -103,7 +100,11 @@ class _Signup1State extends State<Signup1> {
         scopes: ['user-read-email', 'user-library-read'],
         expiration: DateTime.parse(storedValues["expiration"].toString()),
       );
-      spotifyProvider.setSpotify(spt.SpotifyApi(spotifyCredentials));
+      
+      spt.SpotifyApi spotify = spt.SpotifyApi(spotifyCredentials);
+      spotifyProvider.setUser(await spotify.me.get());
+      spotifyProvider.setSpotify(spotify);
+
       if (!mounted) return;
       Navigator.push(
         context,

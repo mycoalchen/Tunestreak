@@ -35,14 +35,11 @@ class _Signup2State extends State<Signup2> {
     // await FirebaseAuth.instance.createUserWithEmailAndPassword(
     //   email: emailController.text, password: passwordController.text);
     // print("Created user");
-    SpotifyProvider spotifyProvider = Provider.of<SpotifyProvider>(context, listen: false);
-    spt.User spotifyUser = await spotifyProvider.spotify.me.get();
-    print("Got spotify user");
     final user = <String, dynamic>{
       'username' : usernameController.text,
       'email' : emailController.text,
       'name' : nameController.text,
-      'spotify' : spotifyUser.displayName,
+      'spotify' : Provider.of<SpotifyProvider>(context, listen: false).user.id,
     };
     db.collection("users").add(user).then((DocumentReference doc) => {
       print('DocumentSnapshot added with ID: ${doc.id}')});
@@ -139,6 +136,9 @@ class _Signup2State extends State<Signup2> {
     if (value == null || value.isEmpty) {
       return 'Please enter a username.';
     }
+    else if (value.toString().contains(' ')) {
+      return 'Spaces not allowed in username';
+    }
     else if (value.toString().length < 40) {
       return null;
     }
@@ -179,7 +179,7 @@ class _Signup2State extends State<Signup2> {
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 40.0,
-                      vertical: 120.0,
+                      vertical: 80.0,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
