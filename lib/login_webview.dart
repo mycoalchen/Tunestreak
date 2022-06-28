@@ -95,16 +95,6 @@ class _AuthWebViewState extends State<AuthWebView> {
                         onWebViewCreated: (controller) {
                           webViewController = controller;
                         },
-                        onLoadStart: (controller, url) {
-                          setState(() {
-                            if (url.toString().startsWith(widget.redirectUri)) {
-                              widget.responseUriWrapper.setValue(this.url);
-                              controller.goBack();
-                            }
-                            this.url = url.toString();
-                            urlController.text = this.url;
-                          });
-                        },
                         androidOnPermissionRequest: (controller, origin, resources) async {
                           return PermissionRequestResponse(
                               resources: resources,
