@@ -16,6 +16,7 @@ class Signup2 extends StatefulWidget {
 
 class _Signup2State extends State<Signup2> {
 
+  String? _usernameErrorMsg;
   final _formKey = GlobalKey<FormState>();
   
   final db = FirebaseFirestore.instance;
@@ -31,10 +32,29 @@ class _Signup2State extends State<Signup2> {
     print("got spotify user in getSpotifyUser()");
     return user;
   }
+  Future<bool> isUsernameTaken() async {
+    try {
+      await FirebaseFirestore.instance
+        .collection('users')
+        .where('username', isEqualTo: usernameController.text)
+        .get().then((value) {
+          if (value.size > 0) {
+            setState(() { _usernameErrorMsg = 'Username already taken.'; });
+            return true;
+          } else { 
+            print("username " + usernameController.text + " not taken.");
+            setState(() { _usernameErrorMsg  = null; });
+            return false; }
+        });
+    } catch(e) {
+      debugPrint("isUsernameTaken error: " + e.toString());
+      return false;
+    } return false;
+  }
+
   Future<void> registerUser() async {
-    // await FirebaseAuth.instance.createUserWithEmailAndPassword(
-    //   email: emailController.text, password: passwordController.text);
-    // print("Created user");
+    await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: emailController.text, password: passwordController.text);
     final user = <String, dynamic>{
       'username' : usernameController.text,
       'email' : emailController.text,
@@ -42,9 +62,14 @@ class _Signup2State extends State<Signup2> {
       'spotify' : Provider.of<SpotifyProvider>(context, listen: false).user.id,
     };
     db.collection("users").add(user).then((DocumentReference doc) => {
-      print('DocumentSnapshot added with ID: ${doc.id}')});
+    print('DocumentSnapshot added with ID: ${doc.id}')});
   }
   Future<void> handleSignupButtonPress() async {
+    // Check if username is already taken
+    if (await isUsernameTaken()) {
+      print("username taken");
+      return;
+    }
     await registerUser();
     if (!mounted) return;
     Navigator.push(context,
@@ -54,28 +79,28 @@ class _Signup2State extends State<Signup2> {
 
   Widget buildEmailFormField() => TextFormField(
       validator: validateEmail,
-      decoration: inputBoxDecoration('Email'),
+      decoration: inputBoxDecoration('Email', null),
       controller: emailController,
   );
   Widget buildUsernameFormField() => TextFormField(
     validator: validateUsername,
-    decoration: inputBoxDecoration('Username'),
     controller: usernameController,
+    decoration: inputBoxDecoration('Username', _usernameErrorMsg),
   );
   Widget buildNameFormField() => TextFormField(
     validator: validateName,
-    decoration: inputBoxDecoration('Name'),
+    decoration: inputBoxDecoration('Name', null),
     controller: nameController,
   );
   Widget buildPasswordFormField() => TextFormField(
     validator: validatePassword,
-    decoration: inputBoxDecoration('Password'),
+    decoration: inputBoxDecoration('Password', null),
     obscureText: true,
     controller: passwordController,
   );
   Widget buildConfirmPasswordFormField() => TextFormField(
     validator: validateConfirmPassword,
-    decoration: inputBoxDecoration('Confirm Password'),
+    decoration: inputBoxDecoration('Confirm Password', null),
     obscureText: true,
   );
 
@@ -174,7 +199,7 @@ class _Signup2State extends State<Signup2> {
                 height: double.infinity,
                 alignment: Alignment.center,
                 child: Form(
-                  autovalidateMode: AutovalidateMode.always,
+                  autovalidateMode: AutovalidateMode.disabled,
                   key: _formKey,
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(

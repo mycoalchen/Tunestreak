@@ -67,11 +67,12 @@ const circleInkwellBoxDecoration = BoxDecoration(
   shape: BoxShape.circle,
 );
 
-InputDecoration inputBoxDecoration(String? label) => InputDecoration(
+InputDecoration inputBoxDecoration(String? label, String? errorMsg) => InputDecoration(
   fillColor: Colors.white,
   filled: true,
   labelText: label,
   contentPadding: const EdgeInsets.all(10.0),
+  errorText: errorMsg,
 );
 
 const circleColor = Color.fromRGBO(210, 210, 210, 1);
