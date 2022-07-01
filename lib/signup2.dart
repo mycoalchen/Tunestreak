@@ -175,6 +175,9 @@ class _Signup2State extends State<Signup2> {
   @override
   void dispose() {
     nameController.dispose();
+    emailController.dispose();
+    usernameController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 

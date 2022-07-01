@@ -16,13 +16,10 @@ class Signin extends StatefulWidget {
 
 class _SigninState extends State<Signin> {
 
-  String? _usernameErrorMsg;
+  String? _emailErrorMsg, _passwordErrorMsg;
   final _formKey = GlobalKey<FormState>();
   
   final db = FirebaseFirestore.instance;
-  
-  final nameController = TextEditingController();
-  final usernameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -33,43 +30,44 @@ class _SigninState extends State<Signin> {
     return user;
   }
 
-  Future<void> registerUser() async {
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: emailController.text, password: passwordController.text);
-    final user = <String, dynamic>{
-      'username' : usernameController.text,
-      'email' : emailController.text,
-      'name' : nameController.text,
-      'spotify' : Provider.of<SpotifyProvider>(context, listen: false).user.id,
-    };
-    db.collection("users").add(user).then((DocumentReference doc) => {
-    print('DocumentSnapshot added with ID: ${doc.id}')});
-  }
-  Future<void> handleSignupButtonPress() async {
-    await registerUser();
-    if (!mounted) return;
-    Navigator.push(context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
+  Future<void> handleSigninButtonPress() async {
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
+      print("Signed in: " + credential.user!.email!);
+      if (!mounted) return;
+      Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
+    } on FirebaseAuthException catch(e) {
+      if (e.code == 'user-not-found') {
+        setState(() {
+          _emailErrorMsg = 'No user found for that email.';
+        });
+      } else if (e.code == 'wrong-password') {
+        setState(() {
+          _passwordErrorMsg = 'Incorrect password.';
+        });
+      }
+    }
   }
 
   Widget buildEmailFormField() => TextFormField(
-      decoration: inputBoxDecoration('Email', null),
+      decoration: inputBoxDecoration('Email', _emailErrorMsg),
       controller: emailController,
   );
   Widget buildPasswordFormField() => TextFormField(
-    decoration: inputBoxDecoration('Password', null),
+    decoration: inputBoxDecoration('Password', _passwordErrorMsg),
     obscureText: true,
     controller: passwordController,
   );
 
-  Widget buildSignupBotton() => Container(
+  Widget buildSigninBotton() => Container(
     height: 50,
     width: 150,
     child: ElevatedButton(
       onPressed: () => {
         if (_formKey.currentState!.validate()) {
-          handleSignupButtonPress()
+          handleSigninButtonPress()
         }
       },
       style: loginButtonStyle,
@@ -77,7 +75,7 @@ class _SigninState extends State<Signin> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: const <Widget>[
           Text(
-            'Continue',
+            'Sign in',
             style: connectButtonTextStyle,
           ),
         ]
@@ -87,7 +85,8 @@ class _SigninState extends State<Signin> {
 
   @override
   void dispose() {
-    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 
@@ -143,7 +142,7 @@ class _SigninState extends State<Signin> {
                         const SizedBox(height: 30.0),
                         buildPasswordFormField(),
                         const SizedBox(height: 30.0),
-                        buildSignupBotton(),
+                        buildSigninBotton(),
                       ],
                     ),
                   ),
