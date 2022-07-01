@@ -75,6 +75,12 @@ InputDecoration inputBoxDecoration(String? label, String? errorMsg) => InputDeco
   errorText: errorMsg,
 );
 
+TextStyle titleTextStyle = const TextStyle(
+  color: darkGray,
+  fontWeight: FontWeight.w700,
+  fontSize: 20,
+);
+
 const circleColor = Color.fromRGBO(210, 210, 210, 1);
 const teal = Color(0xff2bd4b2);
 const spotifyGreen = Color.fromRGBO(28, 215, 96, 1);

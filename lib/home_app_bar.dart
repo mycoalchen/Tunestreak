@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'constants.dart';
+import 'settings.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
@@ -36,11 +37,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           Text(
             title ?? 'No title given',
-            style: const TextStyle(
-              color: darkGray,
-              fontWeight: FontWeight.w700,
-              fontSize: 20,
-            ),
+            style: titleTextStyle,
           ),
           InkWell(
             onTap: () =>
@@ -66,7 +63,11 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                         ListTile(
                           title: const Text('Settings'),
                           onTap: () {
-                            Navigator.pop(context);
+                            Navigator.of(context).pop();
+                            // Navigator.push(
+                            //   context,
+                            //   MaterialPageRoute(builder: (context) => Settings())
+                            // );
                           },
                         ),
                       ],

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:tunestreak/signup2.dart';
-import 'package:tunestreak/spotify_provider.dart';
+import 'signup2.dart';
+import 'signin.dart';
+import 'spotify_provider.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:spotify/spotify.dart' as spt;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -18,7 +19,6 @@ class Signup1 extends StatefulWidget {
 
 class _Signup1State extends State<Signup1> {
   var authUri;
-  String serverResponse = 'Connect Spotify';
   final storage = const FlutterSecureStorage();
 
   // Save Spotify API Credentials to FlutterSecureStorage
@@ -132,9 +132,8 @@ class _Signup1State extends State<Signup1> {
               height: 30,
             ),
             const SizedBox(width: 8),
-            Text(
-              //'Connect Spotify',
-              serverResponse,
+            const Text(
+              'Connect Spotify',
               style: connectButtonTextStyle,
             ),
           ]
@@ -142,11 +141,30 @@ class _Signup1State extends State<Signup1> {
       ),
     );
   }
-  Widget _buildSignupText() {
-    return const Text(
-      'Connect your Spotify account to get started.',
+  Widget _buildSignInButton() {
+    return Container(
+    margin: const EdgeInsets.only(top: 7.5, bottom: 10.0),
+      height: 50,
+      width: 270,
+      child: ElevatedButton(
+        onPressed: () => {
+          Navigator.push(context,
+            MaterialPageRoute(builder: (context) => Signin()),
+          )
+        },
+        style: loginButtonStyle,
+        child: const Text(
+              'Sign in',
+              style: connectButtonTextStyle,
+            ),
+        ),
+    );
+  }
+  Widget _buildText(String text) {
+    return Text(
+      text,
       textAlign: TextAlign.center,
-      style: TextStyle(
+      style: const TextStyle(
         color: Colors.white,
         fontFamily: 'OpenSans',
         fontSize: 20.0,
@@ -205,11 +223,15 @@ class _Signup1State extends State<Signup1> {
                         ),
                       ),
                       const SizedBox(height: 10.0),
+                      _buildText("Connect your Spotify account to get started."),
+                      const SizedBox(height: 10.0),
                       Consumer<SpotifyProvider>(
                         builder: (context, spotifyProvider, child) => _buildSpotifyButton(spotifyProvider),
                       ),
                       const SizedBox(height: 10.0),
-                      _buildSignupText(),
+                      _buildText("Already have an account?"),
+                      const SizedBox(height: 10.0),
+                      _buildSignInButton(),
                     ],
                   ),
                 ),
