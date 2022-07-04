@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'constants.dart';
 import 'settings.dart';
+import 'user_provider.dart';
 
 class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
@@ -29,10 +31,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               padding: const EdgeInsets.all(0),
               margin: const EdgeInsets.all(0),
               decoration: circleInkwellBoxDecoration,
-              child: const CircleAvatar(
-                backgroundColor: circleColor,
-                // TODO: backgroundImage
-              ),
+              child: Provider.of<UserProvider>(context, listen: false).profilePicture,
             ),
           ),
           Text(

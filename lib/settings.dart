@@ -4,9 +4,10 @@ import 'package:spotify/spotify.dart' as spt;
 import 'package:settings_ui/settings_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'user_provider.dart';
+import 'dart:math';
 import 'dart:io';
 import 'constants.dart';
+import 'user_provider.dart';
 
 class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
@@ -20,16 +21,25 @@ class _SettingsState extends State<Settings> {
   final storage = FirebaseStorage.instance;
 
   void chooseProfilePicture(BuildContext context) async {
+    // Pick image from gallery
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     print("pickImage finished");
 
+    // Save image to Firebase storage
     final storageRef = FirebaseStorage.instance.ref();
     if (!mounted) return;
     spt.UserPublic user = Provider.of<UserProvider>(context, listen: false).spotifyUser;
-    String displayName = user.displayName!;
-    final profilePictureRef = storageRef.child("images/${displayName}");
+    final profilePictureRef = storageRef.child("profilePictures/${user.id!}");
     File imageFile = File(image!.path);
+  
+    // Set profile picture in provider
+    Provider.of<UserProvider>(context, listen: false).setProfilePicture(
+      CircleAvatar(
+        backgroundImage: Image.file(imageFile).image,
+      )
+    );
+
     try {
       await profilePictureRef.putFile(imageFile);
       print("finished putting file");
@@ -64,7 +74,7 @@ class _SettingsState extends State<Settings> {
             ),
             tiles: <SettingsTile>[
               SettingsTile.navigation(
-                leading: Icon(Icons.account_circle),
+                leading: Provider.of<UserProvider>(context, listen: false).profilePicture,
                 title: Text('Profile Picture'),
                 onPressed: chooseProfilePicture,
               ),
