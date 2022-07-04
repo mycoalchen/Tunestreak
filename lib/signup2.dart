@@ -3,9 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:spotify/spotify.dart' as spt;
-import 'spotify_provider.dart';
+import 'user_provider.dart';
 import 'constants.dart';
 import 'home.dart';
 
@@ -19,7 +20,9 @@ class _Signup2State extends State<Signup2> {
   String? _usernameErrorMsg;
   final _formKey = GlobalKey<FormState>();
   
-  final db = FirebaseFirestore.instance;
+  final flutterStorage = const FlutterSecureStorage();
+
+  final firestore = FirebaseFirestore.instance;
   
   final nameController = TextEditingController();
   final usernameController = TextEditingController();
@@ -27,8 +30,8 @@ class _Signup2State extends State<Signup2> {
   final passwordController = TextEditingController();
 
   Future<spt.User> getSpotifyUser() async {
-    SpotifyProvider spotifyProvider = Provider.of<SpotifyProvider>(context, listen: false);
-    spt.User user = await spotifyProvider.spotify.me.get();
+    UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
+    spt.User user = await userProvider.spotify.me.get();
     print("got spotify user in getSpotifyUser()");
     return user;
   }
@@ -53,19 +56,31 @@ class _Signup2State extends State<Signup2> {
   }
 
   Future<void> registerUser() async {
+    String username = usernameController.text;
+    UserProvider up = Provider.of<UserProvider>(context, listen: false);
+
+    // Create User in Firebase Auth
     User user = (await FirebaseAuth.instance.createUserWithEmailAndPassword(
       email: emailController.text, password: passwordController.text)).user!;
-    user.updateDisplayName(usernameController.text);
+    user.updateDisplayName(username);
 
+    // Save user to a Firestore document
     if (!mounted) return;
     final userObject = <String, dynamic>{
-      'username' : usernameController.text,
+      'username' : username,
       'email' : emailController.text,
       'name' : nameController.text,
-      'spotify' : Provider.of<SpotifyProvider>(context, listen: false).user.id,
+      'sptId' : up.spotifyUser.id,
     };
-    db.collection("users").add(userObject).then((DocumentReference doc) => {
+    firestore.collection("users").add(userObject).then((DocumentReference doc) => {
     print('DocumentSnapshot added with ID: ${doc.id}')});
+
+    // Save Spotify credentials to flutter secure storage so we can login with email/password
+    spt.SpotifyApiCredentials sc = await up.spotify.getCredentials();
+    await flutterStorage.write(key: "${username}_accessToken", value: sc.accessToken);
+    await flutterStorage.write(key: "${username}_refreshToken", value: sc.refreshToken);
+    await flutterStorage.write(key: "${username}_expiration", value: sc.expiration.toString());
+
   }
   Future<void> handleSignupButtonPress() async {
     // Check if username is already taken

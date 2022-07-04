@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:spotify/spotify.dart' as spt;
-import 'spotify_provider.dart';
+import 'user_provider.dart';
 import 'constants.dart';
 import 'home.dart';
 
@@ -19,15 +19,33 @@ class _SigninState extends State<Signin> {
   String? _emailErrorMsg, _passwordErrorMsg;
   final _formKey = GlobalKey<FormState>();
   
-  final db = FirebaseFirestore.instance;
+  final firestore = FirebaseFirestore.instance;
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   Future<void> handleSigninButtonPress() async {
     try {
-      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
-      print("Signed in: " + credential.user!.email!);
-      // TODO: SET SPOTIFY
+      final fbCredentials = await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
+      final fbUser = fbCredentials.user!;
+      print("Signed in: " + fbUser.email!);
+      
+      // Get the Firestore user object with matching credentials
+      final fbUserObject = firestore.collection("users")
+      .where("email", isEqualTo: fbUser.email)
+      .where("username", isEqualTo: fbUser.displayName)
+      .get().then(
+        (res) => print("found user with username " + fbUser.displayName!),
+        onError: (e) { 
+          print("Error finding user in firestore: $e");
+          return;
+        },
+      );
+
+      // Sign into Spotify using the Spotify credentials from local storage
+      if (!mounted) return;
+      UserProvider sp = Provider.of<UserProvider>(context, listen: false);
+      
+
       if (!mounted) return;
       Navigator.push(context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),

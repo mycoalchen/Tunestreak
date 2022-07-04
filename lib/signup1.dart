@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'signup2.dart';
-import 'signin.dart';
-import 'spotify_provider.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:spotify/spotify.dart' as spt;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'constants.dart';
 import 'config.dart';
+import 'signup2.dart';
+import 'signin.dart';
+import 'home.dart';
+import 'user_provider.dart';
+import 'user_provider.dart';
 import 'login_webview.dart';
 
 
@@ -20,16 +25,14 @@ class Signup1 extends StatefulWidget {
 class _Signup1State extends State<Signup1> {
   var authUri;
   final storage = const FlutterSecureStorage();
+  final firestore = FirebaseFirestore.instance;
 
   // Save Spotify API Credentials to FlutterSecureStorage
-  Future<void> saveSpotifyCredentials(spt.SpotifyApi spotifyApi) async {
+  Future<void> saveSpotifyCredentials(spt.SpotifyApi spotifyApi, String username) async {
     spt.SpotifyApiCredentials credentials = await spotifyApi.getCredentials();
-    print("Saving Spotify Credentials - clientId " + credentials.clientId!);
-    await storage.write(key: "clientId", value: credentials.clientId);
-    await storage.write(key: "clientSecret", value: credentials.clientSecret);
-    await storage.write(key: "accessToken", value: credentials.accessToken);
-    await storage.write(key: "refreshToken", value: credentials.refreshToken);
-    await storage.write(key: "expiration", value: credentials.expiration.toString());
+    await storage.write(key: "${username}_accessToken", value: credentials.accessToken);
+    await storage.write(key: "${username}_refreshToken", value: credentials.refreshToken);
+    await storage.write(key: "${username}_expiration", value: credentials.expiration.toString());
   }
 
   void sendMessage(msg) {
@@ -53,74 +56,95 @@ class _Signup1State extends State<Signup1> {
   
   // copied from https://github.com/rinukkusu/spotify-dart
   // copied from https://medium.com/@ekosuprastyo15/webview-in-flutter-example-a11a24eb617f
-  Future<void> _handleSpotifyButtonPress(BuildContext context, SpotifyProvider spotifyProvider) async {
-    Map<String, String> storedValues = await storage.readAll();
+  Future<void> _handleSpotifyButtonPress(BuildContext context, UserProvider userProvider) async {
+    // Map<String, String> storedValues = await storage.readAll();
     // No stored values - need to do authentication-code flow
-    if (storedValues.isEmpty) {
-      print("Using authentication code flow");
+    // if (storedValues.isEmpty) {
 
-      final credentials = spt.SpotifyApiCredentials(spotifyClientId, spotifyClientSecret);
-      final grant = spt.SpotifyApi.authorizationCodeGrant(credentials);
-      final scopes = ['user-read-email', 'user-library-read'];
+    // Set SpotifyApi object
+    final credentials = spt.SpotifyApiCredentials(spotifyClientId, spotifyClientSecret);
+    final grant = spt.SpotifyApi.authorizationCodeGrant(credentials);
+    final scopes = ['user-read-email', 'user-library-read'];
 
-      authUri = grant.getAuthorizationUrl(Uri.parse(spotifyRedirectUri), scopes: scopes);
+    authUri = grant.getAuthorizationUrl(Uri.parse(spotifyRedirectUri), scopes: scopes);
 
-      if (!mounted) return;    
-      ResponseUriWrapper responseUri = ResponseUriWrapper('default');
+    if (!mounted) return;    
+    ResponseUriWrapper responseUri = ResponseUriWrapper('default');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AuthWebView(authUri.toString(), spotifyRedirectUri, responseUri)),
+    );
+    
+    responseUri.addListener(() async {
+      if (responseUri.getValue() != 'default') {
+        // This code called after login_webview redirects to response Uri
+        spt.SpotifyApi spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.getValue()!);
+        userProvider.setSpotifyUser(await spotify.me.get());
+        userProvider.setSpotify(spotify);
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => AuthWebView(authUri.toString(), spotifyRedirectUri, responseUri)),
-      );
-      
-      responseUri.addListener(() async {
-        if (responseUri.getValue() != 'default') {
-          // This code called after login_webview redirects to response Uri
-          spt.SpotifyApi spotify = spt.SpotifyApi.fromAuthCodeGrant(grant, responseUri.getValue()!);
-          spotifyProvider.setUser(await spotify.me.get());
-          spotifyProvider.setSpotify(spotify);
-          // Save credentials to storage
-          await saveSpotifyCredentials(spotify);
-          if (!mounted) return;
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => Signup2())
-          );
-        }
-      });
-    }
+        // Check if this is a new or returning user
+        // Get the Firestore user object with this Spotify account
+        final spt.UserPublic su = await spotify.me.get();
+        firestore.collection("users").where("sptId", isEqualTo: su.id).get().then(
+          (QuerySnapshot res) {
+            if (res.docs.isEmpty) { // New user
+              print("No user found with Spotify id ${su.id}");
+              if (!mounted) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Signup2())
+              );
+            } else { // Returning user - set User in UserProvider
+              final fbUserObject = res.docs[0];
+              Provider.of<UserProvider>(context, listen: false).setUser(
+                fbUserObject.get("username"),
+                fbUserObject.get("email"),
+                fbUserObject.id,
+              );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen())
+              );
+            }
+          },
+          onError: (e) {
+            print("Error fetching Spotify user: $e");
+            return;
+          }
+        );
+      }
+    });
+    // }
     // Read from stored values
-    else {
-      print("Used saved credentials flow");
-      final spotifyCredentials = spt.SpotifyApiCredentials(
-        storedValues["clientId"],
-        storedValues["clientSecret"],
-        accessToken: storedValues["accessToken"],
-        refreshToken: storedValues["refreshToken"],
-        scopes: ['user-read-email', 'user-library-read'],
-        expiration: DateTime.parse(storedValues["expiration"].toString()),
-      );
-      
-      spt.SpotifyApi spotify = spt.SpotifyApi(spotifyCredentials);
-      spotifyProvider.setUser(await spotify.me.get());
-      spotifyProvider.setSpotify(spotify);
-
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => Signup2())
-      );
-    }
+    // else {
+    //   print("Used saved credentials flow");
+    //   final spotifyCredentials = spt.SpotifyApiCredentials(
+    //     storedValues["clientId"],
+    //     storedValues["clientSecret"],
+    //     accessToken: storedValues["accessToken"],
+    //     refreshToken: storedValues["refreshToken"],
+    //     scopes: ['user-read-email', 'user-library-read'],
+    //     expiration: DateTime.parse(storedValues["expiration"].toString()),
+    //   );
+    //   spt.SpotifyApi spotify = spt.SpotifyApi(spotifyCredentials);
+    //   spotifyProvider.setUser(await spotify.me.get());
+    //   spotifyProvider.setSpotify(spotify);
+    //   if (!mounted) return;
+    //   Navigator.push(
+    //     context,
+    //     MaterialPageRoute(builder: (context) => Signup2())
+    //   );
+    // }
   }
 
-  Widget _buildSpotifyButton(SpotifyProvider spotifyProvider) {
+  Widget _buildSpotifyButton(UserProvider userProvider) {
     return Container(
     margin: const EdgeInsets.only(top: 7.5, bottom: 10.0),
       height: 50,
       width: 270,
       child: ElevatedButton(
         onPressed: () => {
-          _handleSpotifyButtonPress(context, spotifyProvider)
+          _handleSpotifyButtonPress(context, userProvider)
         },
         style: loginButtonStyle,
         child: Row(
@@ -141,25 +165,7 @@ class _Signup1State extends State<Signup1> {
       ),
     );
   }
-  Widget _buildSignInButton() {
-    return Container(
-    margin: const EdgeInsets.only(top: 7.5, bottom: 10.0),
-      height: 50,
-      width: 270,
-      child: ElevatedButton(
-        onPressed: () => {
-          Navigator.push(context,
-            MaterialPageRoute(builder: (context) => Signin()),
-          )
-        },
-        style: loginButtonStyle,
-        child: const Text(
-              'Sign in',
-              style: connectButtonTextStyle,
-            ),
-        ),
-    );
-  }
+  
   Widget _buildText(String text) {
     return Text(
       text,
@@ -225,13 +231,9 @@ class _Signup1State extends State<Signup1> {
                       const SizedBox(height: 10.0),
                       _buildText("Connect your Spotify account to get started."),
                       const SizedBox(height: 10.0),
-                      Consumer<SpotifyProvider>(
-                        builder: (context, spotifyProvider, child) => _buildSpotifyButton(spotifyProvider),
+                      Consumer<UserProvider>(
+                        builder: (context, userProvider, child) => _buildSpotifyButton(userProvider),
                       ),
-                      const SizedBox(height: 10.0),
-                      _buildText("Already have an account?"),
-                      const SizedBox(height: 10.0),
-                      _buildSignInButton(),
                     ],
                   ),
                 ),

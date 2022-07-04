@@ -4,7 +4,7 @@ import 'package:spotify/spotify.dart' as spt;
 import 'package:settings_ui/settings_ui.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'spotify_provider.dart';
+import 'user_provider.dart';
 import 'dart:io';
 import 'constants.dart';
 
@@ -26,7 +26,7 @@ class _SettingsState extends State<Settings> {
 
     final storageRef = FirebaseStorage.instance.ref();
     if (!mounted) return;
-    spt.UserPublic user = Provider.of<SpotifyProvider>(context, listen: false).user;
+    spt.UserPublic user = Provider.of<UserProvider>(context, listen: false).spotifyUser;
     String displayName = user.displayName!;
     final profilePictureRef = storageRef.child("images/${displayName}");
     File imageFile = File(image!.path);
