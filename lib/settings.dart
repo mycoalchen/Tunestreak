@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tunestreak/constants.dart';
+import 'package:settings_ui/settings_ui.dart';
+import 'constants.dart';
 
 class Settings extends StatefulWidget {
   const Settings({Key? key}) : super(key: key);
@@ -24,7 +25,30 @@ class _SettingsState extends State<Settings> {
           'Settings',
           style: titleTextStyle,
         )
-      )
+      ),
+      body: SettingsList(
+        sections: [
+          SettingsSection(
+            title: Text(
+              'Profile',
+              style: settingsTitleStyle,
+            ),
+            tiles: <SettingsTile>[
+              SettingsTile.navigation(
+                leading: Icon(Icons.account_circle),
+                title: Text('Profile Picture'),
+                
+              ),
+              SettingsTile.switchTile(
+                onToggle: (value) {},
+                initialValue: true,
+                leading: Icon(Icons.format_paint),
+                title: Text('Enable custom theme'),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

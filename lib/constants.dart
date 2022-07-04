@@ -81,6 +81,11 @@ TextStyle titleTextStyle = const TextStyle(
   fontSize: 20,
 );
 
+TextStyle settingsTitleStyle = const TextStyle(
+  color: darkGray,
+  fontSize: 15,
+);
+
 const circleColor = Color.fromRGBO(210, 210, 210, 1);
 const teal = Color(0xff2bd4b2);
 const spotifyGreen = Color.fromRGBO(28, 215, 96, 1);

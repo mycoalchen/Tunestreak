@@ -53,15 +53,18 @@ class _Signup2State extends State<Signup2> {
   }
 
   Future<void> registerUser() async {
-    await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: emailController.text, password: passwordController.text);
-    final user = <String, dynamic>{
+    User user = (await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: emailController.text, password: passwordController.text)).user!;
+    user.updateDisplayName(usernameController.text);
+
+    if (!mounted) return;
+    final userObject = <String, dynamic>{
       'username' : usernameController.text,
       'email' : emailController.text,
       'name' : nameController.text,
       'spotify' : Provider.of<SpotifyProvider>(context, listen: false).user.id,
     };
-    db.collection("users").add(user).then((DocumentReference doc) => {
+    db.collection("users").add(userObject).then((DocumentReference doc) => {
     print('DocumentSnapshot added with ID: ${doc.id}')});
   }
   Future<void> handleSignupButtonPress() async {

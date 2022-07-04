@@ -64,10 +64,10 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                           title: const Text('Settings'),
                           onTap: () {
                             Navigator.of(context).pop();
-                            // Navigator.push(
-                            //   context,
-                            //   MaterialPageRoute(builder: (context) => Settings())
-                            // );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => Settings())
+                            );
                           },
                         ),
                       ],
