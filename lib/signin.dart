@@ -23,17 +23,11 @@ class _SigninState extends State<Signin> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  Future<spt.User> getSpotifyUser() async {
-    SpotifyProvider spotifyProvider = Provider.of<SpotifyProvider>(context, listen: false);
-    spt.User user = await spotifyProvider.spotify.me.get();
-    print("got spotify user in getSpotifyUser()");
-    return user;
-  }
-
   Future<void> handleSigninButtonPress() async {
     try {
       final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text, password: passwordController.text);
       print("Signed in: " + credential.user!.email!);
+      // TODO: SET SPOTIFY
       if (!mounted) return;
       Navigator.push(context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
