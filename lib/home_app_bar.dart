@@ -31,7 +31,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               padding: const EdgeInsets.all(0),
               margin: const EdgeInsets.all(0),
               decoration: circleInkwellBoxDecoration,
-              child: Provider.of<UserProvider>(context, listen: false).profilePicture,
+              child: Provider.of<UserProvider>(context, listen: true).profilePicture,
             ),
           ),
           Text(

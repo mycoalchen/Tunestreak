@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -86,7 +89,7 @@ class _Signup1State extends State<Signup1> {
         // Get the Firestore user object with this Spotify account
         final spt.UserPublic su = await spotify.me.get();
         firestore.collection("users").where("sptId", isEqualTo: su.id).get().then(
-          (QuerySnapshot res) {
+          (QuerySnapshot res) async {
             if (res.docs.isEmpty) { // New user
               print("No user found with Spotify id ${su.id}");
               if (!mounted) return;
@@ -96,11 +99,32 @@ class _Signup1State extends State<Signup1> {
               );
             } else { // Returning user - set User in UserProvider
               final fbUserObject = res.docs[0];
+              // Set email, username, and firebase docId
               Provider.of<UserProvider>(context, listen: false).setUser(
                 fbUserObject.get("username"),
                 fbUserObject.get("email"),
                 fbUserObject.id,
               );
+              // Set id
+              Provider.of<UserProvider>(context, listen: false).setId(
+                fbUserObject.get("id"),
+              );
+              // Get profile picture from Firebase Storage - first need user id
+              final String id = Provider.of<UserProvider>(context, listen: false).id;
+              final ppRef = FirebaseStorage.instance.ref().child(
+                "profilePictures/$id");
+              try {
+                const oneMegabyte = 1024 * 1024;
+                final Uint8List? ppData = await ppRef.getData(oneMegabyte);
+                final ppImage = MemoryImage(ppData!);
+                if (!mounted) return;
+                // Set profile picture in provider
+                Provider.of<UserProvider>(context, listen: false).setProfilePicture(CircleAvatar(backgroundImage: ppImage));
+              } on FirebaseException catch (e) {
+                print(e);
+              }
+
+              if (!mounted) return;
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const HomeScreen())

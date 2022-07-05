@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:uuid/uuid.dart';
 import 'package:provider/provider.dart';
 import 'package:spotify/spotify.dart' as spt;
 import 'user_provider.dart';
@@ -64,16 +65,27 @@ class _Signup2State extends State<Signup2> {
       email: emailController.text, password: passwordController.text)).user!;
     user.updateDisplayName(username);
 
-    // Save user to a Firestore document
+    // Give this user a unique time-based id
+    String uuid = const Uuid().v1().toString();
     if (!mounted) return;
+    Provider.of<UserProvider>(context, listen: false).setId(uuid);
+
+    // Save user to a Firestore document
     final userObject = <String, dynamic>{
+      'id' : uuid,
       'username' : username,
       'email' : emailController.text,
       'name' : nameController.text,
       'sptId' : up.spotifyUser.id,
     };
     firestore.collection("users").add(userObject).then((DocumentReference doc) => {
-    print('DocumentSnapshot added with ID: ${doc.id}')});
+      // Set user in provider
+      Provider.of<UserProvider>(context, listen: false).setUser(
+        username,
+        emailController.text,
+        doc.id
+      )
+    });
 
     // Save Spotify credentials to flutter secure storage so we can login with email/password
     spt.SpotifyApiCredentials sc = await up.spotify.getCredentials();
@@ -82,6 +94,7 @@ class _Signup2State extends State<Signup2> {
     await flutterStorage.write(key: "${username}_expiration", value: sc.expiration.toString());
 
   }
+
   Future<void> handleSignupButtonPress() async {
     // Check if username is already taken
     if (await isUsernameTaken()) {

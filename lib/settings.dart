@@ -29,8 +29,8 @@ class _SettingsState extends State<Settings> {
     // Save image to Firebase storage
     final storageRef = FirebaseStorage.instance.ref();
     if (!mounted) return;
-    spt.UserPublic user = Provider.of<UserProvider>(context, listen: false).spotifyUser;
-    final profilePictureRef = storageRef.child("profilePictures/${user.id!}");
+    String id = Provider.of<UserProvider>(context, listen: false).id;
+    final profilePictureRef = storageRef.child("profilePictures/$id");
     File imageFile = File(image!.path);
   
     // Set profile picture in provider
@@ -77,12 +77,6 @@ class _SettingsState extends State<Settings> {
                 leading: Provider.of<UserProvider>(context, listen: false).profilePicture,
                 title: Text('Profile Picture'),
                 onPressed: chooseProfilePicture,
-              ),
-              SettingsTile.switchTile(
-                onToggle: (value) {},
-                initialValue: true,
-                leading: Icon(Icons.format_paint),
-                title: Text('Enable custom theme'),
               ),
             ],
           ),

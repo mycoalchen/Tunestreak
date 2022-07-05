@@ -9,12 +9,17 @@ class UserProvider extends ChangeNotifier {
   late String username;
   late String email;
   late String fbDocId;
+  late String id;
 
   late CircleAvatar profilePicture = CircleAvatar(
     backgroundColor: Colors.primaries[math.Random().nextInt(Colors.primaries.length)],
     child: Text(username.substring(0, 2)),
   );  
 
+  void setId(String newId) {
+    id = newId;
+    notifyListeners();
+  }
   void setSpotify(spt.SpotifyApi newSpotify) {
     spotify = newSpotify;
     notifyListeners();
