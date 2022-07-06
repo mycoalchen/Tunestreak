@@ -86,6 +86,19 @@ TextStyle settingsTitleStyle = const TextStyle(
   fontSize: 15,
 );
 
+TextStyle welcomeTextStyle = const TextStyle(
+  color: Colors.white,
+  fontFamily: 'OpenSans',
+  fontSize: 50.0,
+  fontWeight: FontWeight.bold,
+  shadows: [
+    Shadow(
+      blurRadius: 6,
+      color: darkGray,
+    )
+  ]
+);
+
 const circleColor = Color.fromRGBO(210, 210, 210, 1);
 const teal = Color(0xff2bd4b2);
 const spotifyGreen = Color.fromRGBO(28, 215, 96, 1);

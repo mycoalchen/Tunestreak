@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,6 +28,8 @@ class _Signup1State extends State<Signup1> {
   var authUri;
   final storage = const FlutterSecureStorage();
   final firestore = FirebaseFirestore.instance;
+
+  bool spotifyLoading = false;
 
   // Save Spotify API Credentials to FlutterSecureStorage
   Future<void> saveSpotifyCredentials(spt.SpotifyApi spotifyApi, String username) async {
@@ -125,6 +126,7 @@ class _Signup1State extends State<Signup1> {
               }
 
               if (!mounted) return;
+              Navigator.pop(context); 
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const HomeScreen())
@@ -237,20 +239,9 @@ class _Signup1State extends State<Signup1> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      const Text(
+                      Text(
                         'Welcome!',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'OpenSans',
-                          fontSize: 50.0,
-                          fontWeight: FontWeight.bold,
-                          shadows: [
-                            Shadow(
-                              blurRadius: 6,
-                              color: darkGray,
-                            )
-                          ]
-                        ),
+                        style: welcomeTextStyle,
                       ),
                       const SizedBox(height: 10.0),
                       _buildText("Connect your Spotify account to get started."),
