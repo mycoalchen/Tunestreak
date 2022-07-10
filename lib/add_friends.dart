@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'constants.dart';
+
+class Friend {
+  String name = "name";
+  String username = "username";
+  String id = "id";
+  Friend(this.name, this.username, this.id);
+}
 
 class AddFriendsPage extends StatefulWidget {
   const AddFriendsPage({Key? key}) : super(key: key);
@@ -9,12 +17,28 @@ class AddFriendsPage extends StatefulWidget {
 }
 
 class AddFriendsPageState extends State<AddFriendsPage> {
-  var _focusNode = FocusNode();
+  final _focusNode = FocusNode();
+  final firestore = FirebaseFirestore.instance;
 
   final _friendSearchController = TextEditingController();
+  var _friendsList = [];
 
   void _friendSearchControllerListener() {
-    print('Latest value: ${_friendSearchController.text}');
+    var newFriendsList = List<Friend>.empty(growable: true);
+    firestore
+        .collection("users")
+        .where("username", isEqualTo: _friendSearchController.text)
+        .get()
+        .then((QuerySnapshot res) {
+      for (QueryDocumentSnapshot<Object?> doc in res.docs) {
+        print("Found user");
+        Friend friend =
+            Friend(doc.get('name'), doc.get('username'), doc.get('id'));
+        print("Added user");
+        newFriendsList.add(friend);
+      }
+      setState(() => _friendsList = newFriendsList);
+    });
   }
 
   @override
@@ -45,7 +69,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                 focusNode: _focusNode,
                 style: const TextStyle(fontSize: 18),
                 decoration: InputDecoration(
-                  hintText: "Search by name or username",
+                  hintText: "Search by username",
                   hintStyle: const TextStyle(fontSize: 18),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(40.0),
@@ -68,7 +92,23 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                     ),
                   ),
                 )),
-          ))
+          )),
+      Expanded(
+        child: ListView.builder(
+            itemCount: _friendsList.length,
+            itemBuilder: (BuildContext context, int index) {
+              return Container(
+                  padding: EdgeInsets.fromLTRB(30, 10, 0, 0),
+                  height: 50,
+                  color: Colors.white,
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(_friendsList[index].username),
+                        Text(_friendsList[index].name),
+                      ]));
+            }),
+      )
     ]));
   }
 }
