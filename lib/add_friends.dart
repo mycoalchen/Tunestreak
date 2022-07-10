@@ -9,24 +9,41 @@ class AddFriendsPage extends StatefulWidget {
 }
 
 class AddFriendsPageState extends State<AddFriendsPage> {
-
   var _focusNode = FocusNode();
+
+  final _friendSearchController = TextEditingController();
+
+  void _friendSearchControllerListener() {
+    print('Latest value: ${_friendSearchController.text}');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _friendSearchController.addListener(_friendSearchControllerListener);
+  }
+
+  @override
+  void dispose() {
+    _friendSearchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          AppBar(
-            backgroundColor: Colors.white,
-            toolbarHeight: 60.0,
-            centerTitle: false,
-            automaticallyImplyLeading: false,
-            title: Padding(
-              padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
-              child: TextField(
+        body: Column(children: [
+      AppBar(
+          backgroundColor: Colors.white,
+          toolbarHeight: 60.0,
+          centerTitle: false,
+          automaticallyImplyLeading: false,
+          title: Padding(
+            padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
+            child: TextField(
+                controller: _friendSearchController,
                 focusNode: _focusNode,
-                style: TextStyle(fontSize: 18),
+                style: const TextStyle(fontSize: 18),
                 decoration: InputDecoration(
                   hintText: "Search by name or username",
                   hintStyle: const TextStyle(fontSize: 18),
@@ -38,9 +55,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                   fillColor: circleColor,
                   filled: true,
                   prefixIcon: InkWell(
-                    onTap: () => {
-                      _focusNode.requestFocus()
-                    },
+                    onTap: () => {_focusNode.requestFocus()},
                     highlightColor: Colors.transparent,
                     splashColor: Colors.transparent,
                     child: Container(
@@ -52,12 +67,8 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                       ),
                     ),
                   ),
-                )
-              ),
-            )
-          )
-        ]
-      )
-    );
+                )),
+          ))
+    ]));
   }
 }

@@ -20,14 +20,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<UserProvider>(
-      create: (context) => UserProvider(),
-      child: Consumer<UserProvider>(
-        builder: (context, spotifyProvider, child) => MaterialApp(
-          debugShowCheckedModeBanner: false,
-          home: Signup1(),
-        ),
-      )
-    );
+    return MultiProvider(
+        providers: [
+          ChangeNotifierProvider<UserProvider>(
+              create: (context) => UserProvider()),
+        ],
+        child: Consumer<UserProvider>(
+          builder: (context, userProvider, child) => MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: Signup1(),
+          ),
+        ));
   }
 }

@@ -17,43 +17,51 @@ class Signup2 extends StatefulWidget {
 }
 
 class _Signup2State extends State<Signup2> {
-
   String? _usernameErrorMsg;
   final _formKey = GlobalKey<FormState>();
-  
-  final flutterStorage = const FlutterSecureStorage();
 
   final firestore = FirebaseFirestore.instance;
-  
+
+  final flutterStorage = const FlutterSecureStorage();
+
   final nameController = TextEditingController();
   final usernameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   Future<spt.User> getSpotifyUser() async {
-    UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
+    UserProvider userProvider =
+        Provider.of<UserProvider>(context, listen: false);
     spt.User user = await userProvider.spotify.me.get();
     print("got spotify user in getSpotifyUser()");
     return user;
   }
+
   Future<bool> isUsernameTaken() async {
     try {
       await FirebaseFirestore.instance
-        .collection('users')
-        .where('username', isEqualTo: usernameController.text)
-        .get().then((value) {
-          if (value.size > 0) {
-            setState(() { _usernameErrorMsg = 'Username already taken.'; });
-            return true;
-          } else { 
-            print("username " + usernameController.text + " not taken.");
-            setState(() { _usernameErrorMsg  = null; });
-            return false; }
-        });
-    } catch(e) {
+          .collection('users')
+          .where('username', isEqualTo: usernameController.text)
+          .get()
+          .then((value) {
+        if (value.size > 0) {
+          setState(() {
+            _usernameErrorMsg = 'Username already taken.';
+          });
+          return true;
+        } else {
+          print("username " + usernameController.text + " not taken.");
+          setState(() {
+            _usernameErrorMsg = null;
+          });
+          return false;
+        }
+      });
+    } catch (e) {
       debugPrint("isUsernameTaken error: " + e.toString());
       return false;
-    } return false;
+    }
+    return false;
   }
 
   Future<void> registerUser() async {
@@ -62,7 +70,8 @@ class _Signup2State extends State<Signup2> {
 
     // Create User in Firebase Auth
     User user = (await FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: emailController.text, password: passwordController.text)).user!;
+            email: emailController.text, password: passwordController.text))
+        .user!;
     user.updateDisplayName(username);
 
     // Give this user a unique time-based id
@@ -72,90 +81,94 @@ class _Signup2State extends State<Signup2> {
 
     // Save user to a Firestore document
     final userObject = <String, dynamic>{
-      'id' : uuid,
-      'username' : username,
-      'email' : emailController.text,
-      'name' : nameController.text,
-      'sptId' : up.spotifyUser.id,
+      'id': uuid,
+      'username': username,
+      'email': emailController.text,
+      'name': nameController.text,
+      'sptId': up.spotifyUser.id,
+      'ppSet': false,
     };
-    firestore.collection("users").add(userObject).then((DocumentReference doc) => {
-      // Set user in provider
-      Provider.of<UserProvider>(context, listen: false).setUser(
-        username,
-        emailController.text,
-        doc.id
-      )
-    });
+
+    firestore
+        .collection("users")
+        .add(userObject)
+        .then((DocumentReference doc) => {
+              // Set user in provider
+              Provider.of<UserProvider>(context, listen: false)
+                  .setUser(username, emailController.text, doc.id)
+            });
 
     // Save Spotify credentials to flutter secure storage so we can login with email/password
     spt.SpotifyApiCredentials sc = await up.spotify.getCredentials();
-    await flutterStorage.write(key: "${username}_accessToken", value: sc.accessToken);
-    await flutterStorage.write(key: "${username}_refreshToken", value: sc.refreshToken);
-    await flutterStorage.write(key: "${username}_expiration", value: sc.expiration.toString());
-
+    await flutterStorage.write(
+        key: "${username}_accessToken", value: sc.accessToken);
+    await flutterStorage.write(
+        key: "${username}_refreshToken", value: sc.refreshToken);
+    await flutterStorage.write(
+        key: "${username}_expiration", value: sc.expiration.toString());
   }
 
   Future<void> handleSignupButtonPress() async {
     // Check if username is already taken
-    if (await isUsernameTaken()) {
+    bool usernameTaken = await isUsernameTaken();
+    if (usernameTaken) {
       print("username taken");
       return;
+    } else {
+      await registerUser();
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     }
-    await registerUser();
-    if (!mounted) return;
-    Navigator.push(context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
   }
 
   Widget buildEmailFormField() => TextFormField(
-      validator: validateEmail,
-      decoration: inputBoxDecoration('Email', null),
-      controller: emailController,
-  );
+        validator: validateEmail,
+        decoration: inputBoxDecoration('Email', null),
+        controller: emailController,
+      );
   Widget buildUsernameFormField() => TextFormField(
-    validator: validateUsername,
-    controller: usernameController,
-    decoration: inputBoxDecoration('Username', _usernameErrorMsg),
-  );
+        validator: validateUsername,
+        controller: usernameController,
+        decoration: inputBoxDecoration('Username', _usernameErrorMsg),
+      );
   Widget buildNameFormField() => TextFormField(
-    validator: validateName,
-    decoration: inputBoxDecoration('Name', null),
-    controller: nameController,
-  );
+        validator: validateName,
+        decoration: inputBoxDecoration('Name', null),
+        controller: nameController,
+      );
   Widget buildPasswordFormField() => TextFormField(
-    validator: validatePassword,
-    decoration: inputBoxDecoration('Password', null),
-    obscureText: true,
-    controller: passwordController,
-  );
+        validator: validatePassword,
+        decoration: inputBoxDecoration('Password', null),
+        obscureText: true,
+        controller: passwordController,
+      );
   Widget buildConfirmPasswordFormField() => TextFormField(
-    validator: validateConfirmPassword,
-    decoration: inputBoxDecoration('Confirm Password', null),
-    obscureText: true,
-  );
+        validator: validateConfirmPassword,
+        decoration: inputBoxDecoration('Confirm Password', null),
+        obscureText: true,
+      );
 
   Widget buildSignupBotton() => Container(
-    height: 50,
-    width: 150,
-    child: ElevatedButton(
-      onPressed: () => {
-        if (_formKey.currentState!.validate()) {
-          handleSignupButtonPress()
-        }
-      },
-      style: loginButtonStyle,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const <Widget>[
-          Text(
-            'Continue',
-            style: connectButtonTextStyle,
-          ),
-        ]
-      ),
-    ),
-  );
+        height: 50,
+        width: 150,
+        child: ElevatedButton(
+          onPressed: () => {
+            if (_formKey.currentState!.validate()) {handleSignupButtonPress()}
+          },
+          style: loginButtonStyle,
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const <Widget>[
+                Text(
+                  'Continue',
+                  style: connectButtonTextStyle,
+                ),
+              ]),
+        ),
+      );
 
   String? validateEmail(String? value) {
     String pattern =
@@ -163,42 +176,47 @@ class _Signup2State extends State<Signup2> {
         r"{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]"
         r"{0,253}[a-zA-Z0-9])?)*$";
     RegExp regex = RegExp(pattern);
-    if (value == null || value.isEmpty || !regex.hasMatch(value))
-      { return 'Please enter a valid email.'; }
-    else
-      { return null; }
+    if (value == null || value.isEmpty || !regex.hasMatch(value)) {
+      return 'Please enter a valid email.';
+    } else {
+      return null;
+    }
   }
+
   String? validatePassword(String? value) {
     RegExp regex = // at least 8 characters long
         RegExp(r'^.{8,}$');
     if (value == null || value.isEmpty || !regex.hasMatch(value)) {
       return 'Password must be at least 8 characters long';
-    } else { return null; }
+    } else {
+      return null;
+    }
   }
+
   String? validateConfirmPassword(String? value) {
     if (value != passwordController.text) {
       return 'Passwords must match';
-    } else { return null; }
+    } else {
+      return null;
+    }
   }
+
   String? validateName(String? value) {
     if (value == null || value.toString().length < 40) {
       return null;
-    }
-    else {
+    } else {
       return 'Please enter a name under 40 characters long.';
     }
   }
+
   String? validateUsername(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter a username.';
-    }
-    else if (value.toString().contains(' ')) {
+    } else if (value.toString().contains(' ')) {
       return 'Spaces not allowed in username';
-    }
-    else if (value.toString().length < 40) {
+    } else if (value.toString().length < 40) {
       return null;
-    }
-    else {
+    } else {
       return 'Please enter a username under 40 characters long.';
     }
   }
@@ -271,7 +289,6 @@ class _Signup2State extends State<Signup2> {
                         buildConfirmPasswordFormField(),
                         const SizedBox(height: 30.0),
                         buildSignupBotton(),
-                        
                       ],
                     ),
                   ),

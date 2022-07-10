@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:spotify/spotify.dart' as spt;
@@ -17,8 +19,8 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
-
   final storage = FirebaseStorage.instance;
+  final firestore = FirebaseFirestore.instance;
 
   void chooseProfilePicture(BuildContext context) async {
     // Pick image from gallery
@@ -32,39 +34,39 @@ class _SettingsState extends State<Settings> {
     String id = Provider.of<UserProvider>(context, listen: false).id;
     final profilePictureRef = storageRef.child("profilePictures/$id");
     File imageFile = File(image!.path);
-  
-    // Set profile picture in provider
-    Provider.of<UserProvider>(context, listen: false).setProfilePicture(
-      CircleAvatar(
-        backgroundImage: Image.file(imageFile).image,
-      )
-    );
-
     try {
       await profilePictureRef.putFile(imageFile);
+      String fbDocId =
+          Provider.of<UserProvider>(context, listen: false).fbDocId;
+      firestore.doc(fbDocId).set(<String, dynamic>{
+        'ppSet': true,
+      });
       print("finished putting file");
+      // Set profile picture in provider
+      Provider.of<UserProvider>(context, listen: false)
+          .setProfilePicture(CircleAvatar(
+        backgroundImage: Image.file(imageFile).image,
+      ));
     } on FirebaseException catch (e) {
       print(e);
+      return;
     }
-
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, 
-          color: darkGray), 
-          onPressed: () => Navigator.of(context).pop()),
-        title: Text(
-          'Settings',
-          style: titleTextStyle,
-        )
-      ),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: darkGray),
+              onPressed: () => Navigator.of(context).pop()),
+          title: Text(
+            'Settings',
+            style: titleTextStyle,
+          )),
       body: SettingsList(
         sections: [
           SettingsSection(
@@ -74,7 +76,8 @@ class _SettingsState extends State<Settings> {
             ),
             tiles: <SettingsTile>[
               SettingsTile.navigation(
-                leading: Provider.of<UserProvider>(context, listen: false).profilePicture,
+                leading: Provider.of<UserProvider>(context, listen: false)
+                    .profilePicture,
                 title: Text('Profile Picture'),
                 onPressed: chooseProfilePicture,
               ),
