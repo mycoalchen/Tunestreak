@@ -5,10 +5,10 @@ class NoSplash extends InteractiveInkFeature {
     required MaterialInkController controller,
     required RenderBox referenceBox,
   }) : super(
-    controller: controller,
-    referenceBox: referenceBox,
-    color: Colors.transparent,
-  );
+          controller: controller,
+          referenceBox: referenceBox,
+          color: Colors.transparent,
+        );
 
   @override
   void paintFeature(Canvas canvas, Matrix4 transform) {}
@@ -39,11 +39,10 @@ final kBoxDecorationStyle = BoxDecoration(
 
 final loginButtonStyle = ButtonStyle(
   backgroundColor: MaterialStateProperty.all(darkGray),
-  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-    RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10.0),
-    )
-  ),
+  shape:
+      MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(10.0),
+  )),
   // Shadow shadowColor: MaterialStateProperty.all(Color(0xffFFFC00)),
   // Spotify shadowColor: MaterialStateProperty.all(Color(0xff1DB954)),
 );
@@ -51,11 +50,12 @@ final loginButtonStyle = ButtonStyle(
 const connectButtonTextStyle = TextStyle(
   color: Colors.white,
   shadows: [
-    Shadow( // bottomLeft
-          offset: Offset(0, 0),
-          blurRadius: 4,
-          color: Colors.black,
-        ),
+    Shadow(
+      // bottomLeft
+      offset: Offset(0, 0),
+      blurRadius: 4,
+      color: Colors.black,
+    ),
   ],
   fontSize: 22.0,
   fontWeight: FontWeight.bold,
@@ -67,13 +67,14 @@ const circleInkwellBoxDecoration = BoxDecoration(
   shape: BoxShape.circle,
 );
 
-InputDecoration inputBoxDecoration(String? label, String? errorMsg) => InputDecoration(
-  fillColor: Colors.white,
-  filled: true,
-  labelText: label,
-  contentPadding: const EdgeInsets.all(10.0),
-  errorText: errorMsg,
-);
+InputDecoration inputBoxDecoration(String? label, String? errorMsg) =>
+    InputDecoration(
+      fillColor: Colors.white,
+      filled: true,
+      labelText: label,
+      contentPadding: const EdgeInsets.all(10.0),
+      errorText: errorMsg,
+    );
 
 TextStyle titleTextStyle = const TextStyle(
   color: darkGray,
@@ -87,17 +88,24 @@ TextStyle settingsTitleStyle = const TextStyle(
 );
 
 TextStyle welcomeTextStyle = const TextStyle(
-  color: Colors.white,
-  fontFamily: 'OpenSans',
-  fontSize: 50.0,
-  fontWeight: FontWeight.bold,
-  shadows: [
-    Shadow(
-      blurRadius: 6,
-      color: darkGray,
-    )
-  ]
-);
+    color: Colors.white,
+    fontFamily: 'OpenSans',
+    fontSize: 50.0,
+    fontWeight: FontWeight.bold,
+    shadows: [
+      Shadow(
+        blurRadius: 6,
+        color: darkGray,
+      )
+    ]);
+
+ButtonStyle addFriendButtonStyle = ButtonStyle(
+    backgroundColor: MaterialStateProperty.all<Color>(teal),
+    foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20.0),
+    )));
 
 const circleColor = Color.fromRGBO(210, 210, 210, 1);
 const teal = Color(0xff2bd4b2);

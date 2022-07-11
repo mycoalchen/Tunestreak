@@ -9,6 +9,49 @@ class Friend {
   Friend(this.name, this.username, this.id);
 }
 
+class FriendCard extends StatelessWidget {
+  final String name, username, id;
+  const FriendCard(this.name, this.username, this.id);
+
+  void onTapped() {
+    print("Tapped");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        padding: EdgeInsets.fromLTRB(30, 10, 30, 10),
+        height: 60,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(
+              bottom: BorderSide(
+            color: circleColor,
+            width: 2.0,
+          )),
+        ),
+        child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(username, style: TextStyle(fontSize: 18.0)),
+                    Text(name, style: TextStyle(fontSize: 14.0)),
+                  ]),
+              TextButton(
+                style: addFriendButtonStyle,
+                child:
+                    const Text("Add friend", style: TextStyle(fontSize: 19.0)),
+                onPressed: () {
+                  print("Added friend");
+                },
+              )
+            ]));
+  }
+}
+
 class AddFriendsPage extends StatefulWidget {
   const AddFriendsPage({Key? key}) : super(key: key);
 
@@ -21,7 +64,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
   final firestore = FirebaseFirestore.instance;
 
   final _friendSearchController = TextEditingController();
-  var _friendsList = [];
+  var _friendsList = List<Friend>.empty();
 
   void _friendSearchControllerListener() {
     var newFriendsList = List<Friend>.empty(growable: true);
@@ -94,21 +137,12 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                 )),
           )),
       Expanded(
-        child: ListView.builder(
-            itemCount: _friendsList.length,
-            itemBuilder: (BuildContext context, int index) {
-              return Container(
-                  padding: EdgeInsets.fromLTRB(30, 10, 0, 0),
-                  height: 50,
-                  color: Colors.white,
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(_friendsList[index].username),
-                        Text(_friendsList[index].name),
-                      ]));
-            }),
-      )
+          child: ListView.builder(
+              itemCount: _friendsList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return FriendCard(_friendsList[index].name,
+                    _friendsList[index].username, _friendsList[index].id);
+              }))
     ]));
   }
 }
