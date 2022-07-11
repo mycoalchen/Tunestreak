@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:tunestreak/user_provider.dart';
+import 'user_profile.dart';
 import 'constants.dart';
 
 class Friend {
@@ -10,8 +13,9 @@ class Friend {
 }
 
 class FriendCard extends StatelessWidget {
-  final String name, username, id;
-  const FriendCard(this.name, this.username, this.id);
+  final String name, username, fbDocId;
+  final FirebaseFirestore firestore;
+  const FriendCard(this.name, this.username, this.fbDocId, this.firestore);
 
   void onTapped() {
     print("Tapped");
@@ -44,8 +48,13 @@ class FriendCard extends StatelessWidget {
                 style: addFriendButtonStyle,
                 child:
                     const Text("Add friend", style: TextStyle(fontSize: 19.0)),
-                onPressed: () {
-                  print("Added friend");
+                onPressed: () async {
+                  firestore
+                      .collection("users")
+                      .doc(Provider.of<UserProvider>(context, listen: false)
+                          .fbDocId)
+                      .collection("friends")
+                      .add({"fbDocId": fbDocId, "streak": 0});
                 },
               )
             ]));
@@ -75,8 +84,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
         .then((QuerySnapshot res) {
       for (QueryDocumentSnapshot<Object?> doc in res.docs) {
         print("Found user");
-        Friend friend =
-            Friend(doc.get('name'), doc.get('username'), doc.get('id'));
+        Friend friend = Friend(doc.get('name'), doc.get('username'), doc.id);
         print("Added user");
         newFriendsList.add(friend);
       }
@@ -140,8 +148,11 @@ class AddFriendsPageState extends State<AddFriendsPage> {
           child: ListView.builder(
               itemCount: _friendsList.length,
               itemBuilder: (BuildContext context, int index) {
-                return FriendCard(_friendsList[index].name,
-                    _friendsList[index].username, _friendsList[index].id);
+                return FriendCard(
+                    _friendsList[index].name,
+                    _friendsList[index].username,
+                    _friendsList[index].id,
+                    firestore);
               }))
     ]));
   }
