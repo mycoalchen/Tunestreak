@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:tunestreak/user_provider.dart';
 import 'user_profile.dart';
+import 'friend_card.dart';
 import 'constants.dart';
 
 class Friend {
@@ -10,55 +11,6 @@ class Friend {
   String username = "username";
   String id = "id";
   Friend(this.name, this.username, this.id);
-}
-
-class FriendCard extends StatelessWidget {
-  final String name, username, fbDocId;
-  final FirebaseFirestore firestore;
-  const FriendCard(this.name, this.username, this.fbDocId, this.firestore);
-
-  void onTapped() {
-    print("Tapped");
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-        padding: EdgeInsets.fromLTRB(30, 10, 30, 10),
-        height: 60,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(
-              bottom: BorderSide(
-            color: circleColor,
-            width: 2.0,
-          )),
-        ),
-        child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(username, style: TextStyle(fontSize: 18.0)),
-                    Text(name, style: TextStyle(fontSize: 14.0)),
-                  ]),
-              TextButton(
-                style: addFriendButtonStyle,
-                child:
-                    const Text("Add friend", style: TextStyle(fontSize: 19.0)),
-                onPressed: () async {
-                  firestore
-                      .collection("users")
-                      .doc(Provider.of<UserProvider>(context, listen: false)
-                          .fbDocId)
-                      .collection("friends")
-                      .add({"fbDocId": fbDocId, "streak": 0});
-                },
-              )
-            ]));
-  }
 }
 
 class AddFriendsPage extends StatefulWidget {
@@ -148,7 +100,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
           child: ListView.builder(
               itemCount: _friendsList.length,
               itemBuilder: (BuildContext context, int index) {
-                return FriendCard(
+                return AddFriendCard(
                     _friendsList[index].name,
                     _friendsList[index].username,
                     _friendsList[index].id,
