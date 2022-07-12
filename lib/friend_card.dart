@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:spotify/spotify.dart';
+import 'package:just_audio/just_audio.dart';
 import 'user_provider.dart';
 import 'constants.dart';
 
@@ -14,8 +16,12 @@ class AddFriendCard extends StatefulWidget {
 }
 
 class _AddFriendCardState extends State<AddFriendCard> {
-  void onTapped() {
-    print("Tapped");
+  Future<void> onAddFriendTapped() async {
+    widget.firestore
+        .collection("users")
+        .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
+        .collection("friends")
+        .add({"fbDocId": widget.fbDocId, "streak": 0});
   }
 
   @override
@@ -45,14 +51,7 @@ class _AddFriendCardState extends State<AddFriendCard> {
                 style: addFriendButtonStyle,
                 child:
                     const Text("Add friend", style: TextStyle(fontSize: 19.0)),
-                onPressed: () async {
-                  widget.firestore
-                      .collection("users")
-                      .doc(Provider.of<UserProvider>(context, listen: false)
-                          .fbDocId)
-                      .collection("friends")
-                      .add({"fbDocId": widget.fbDocId, "streak": 0});
-                },
+                onPressed: onAddFriendTapped,
               )
             ]));
   }
@@ -68,8 +67,17 @@ class StreakCard extends StatefulWidget {
 }
 
 class _StreakCardState extends State<StreakCard> {
-  void onTapped() {
-    print("Tapped");
+  Future<void> onTapped() async {
+    UserProvider up = Provider.of<UserProvider>(context, listen: false);
+    Track b3d = await up.spotify.tracks
+        .get('1bxZpUVoYnwDzR42vGpzlA?si=0aaa35a0b22c4b19');
+    final player = AudioPlayer();
+    if (b3d.previewUrl != null) {
+      final duration = await player.setUrl(b3d.previewUrl!);
+      player.play();
+    } else {
+      print("ERROR: PREVIEW NULL");
+    }
   }
 
   @override
@@ -97,16 +105,9 @@ class _StreakCardState extends State<StreakCard> {
                   ]),
               TextButton(
                 style: addFriendButtonStyle,
+                onPressed: onTapped,
                 child:
                     const Text("Send song", style: TextStyle(fontSize: 19.0)),
-                onPressed: () async {
-                  widget.firestore
-                      .collection("users")
-                      .doc(Provider.of<UserProvider>(context, listen: false)
-                          .fbDocId)
-                      .collection("friends")
-                      .add({"fbDocId": widget.fbDocId, "streak": 0});
-                },
               )
             ]));
   }

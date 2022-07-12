@@ -33,6 +33,7 @@ class StreaksPageState extends State<StreaksPage> {
         .then((QuerySnapshot res) async {
       print("Running through friends");
       for (QueryDocumentSnapshot<Object?> doc in res.docs) {
+        if (!mounted) return;
         await users
             .doc(doc.get("fbDocId"))
             .get()
@@ -42,6 +43,7 @@ class StreaksPageState extends State<StreaksPage> {
               Friend(friend.get("name"), friend.get("username"), friend.id));
         });
       }
+      if (!mounted) return;
       setState(() => _friendsList = friendsList);
     });
   }

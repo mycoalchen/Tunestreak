@@ -73,7 +73,15 @@ class _Signup1State extends State<Signup1> {
     final credentials =
         spt.SpotifyApiCredentials(spotifyClientId, spotifyClientSecret);
     final grant = spt.SpotifyApi.authorizationCodeGrant(credentials);
-    final scopes = ['user-read-email', 'user-library-read'];
+    final scopes = [
+      'user-read-email',
+      'user-library-read',
+      'user-read-recently-played',
+      'user-modify-playback-state',
+      'user-read-playback-position',
+      'playlist-read-collaborative',
+      'app-remote-control',
+    ];
 
     authUri = grant.getAuthorizationUrl(Uri.parse(spotifyRedirectUri),
         scopes: scopes);
