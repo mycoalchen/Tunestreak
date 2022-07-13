@@ -109,5 +109,6 @@ ButtonStyle addFriendButtonStyle = ButtonStyle(
 
 const circleColor = Color.fromRGBO(210, 210, 210, 1);
 const teal = Color(0xff2bd4b2);
+const pink = Color.fromRGBO(224, 8, 130, 1);
 const spotifyGreen = Color.fromRGBO(28, 215, 96, 1);
 const darkGray = Color.fromRGBO(30, 30, 30, 1);

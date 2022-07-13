@@ -74,6 +74,7 @@ class _Signup1State extends State<Signup1> {
         spt.SpotifyApiCredentials(spotifyClientId, spotifyClientSecret);
     final grant = spt.SpotifyApi.authorizationCodeGrant(credentials);
     final scopes = [
+      'user-top-read',
       'user-read-email',
       'user-library-read',
       'user-read-recently-played',

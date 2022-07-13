@@ -69,22 +69,32 @@ class StreakCard extends StatefulWidget {
 class _StreakCardState extends State<StreakCard> {
   Future<void> onTapped() async {
     UserProvider up = Provider.of<UserProvider>(context, listen: false);
-    Track b3d = await up.spotify.tracks
-        .get('1bxZpUVoYnwDzR42vGpzlA?si=0aaa35a0b22c4b19');
-    final player = AudioPlayer();
-    if (b3d.previewUrl != null) {
-      final duration = await player.setUrl(b3d.previewUrl!);
-      player.play();
-    } else {
-      print("ERROR: PREVIEW NULL");
+    // Track b3d = await up.spotify.tracks
+    //     .get('1bxZpUVoYnwDzR42vGpzlA?si=0aaa35a0b22c4b19');
+    // final player = AudioPlayer();
+    // if (b3d.previewUrl != null) {
+    //   final duration = await player.setUrl(b3d.previewUrl!);
+    //   player.play();
+    // } else {
+    //   print("ERROR: PREVIEW NULL");
+    // }
+    List<PlayHistory> rp =
+        (await up.spotify.me.recentlyPlayed()).toList() as List<PlayHistory>;
+    for (PlayHistory p in rp.getRange(0, 8)) {
+      print(p.track!.name!);
     }
+    // final topTracks = await up.spotify.me.topTracks();
+    // final topTrackIds = topTracks.take(8).map((track) => track.id).toList();
+    // for (int i = 0; i < topTrackIds.length; i++) {
+    //   Track track = await up.spotify.tracks.get(topTrackIds[i]!);
+    //   print(track.name);
+    // }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: EdgeInsets.fromLTRB(30, 10, 30, 10),
-        height: 60,
+        padding: EdgeInsets.fromLTRB(30, 10, 30, 0),
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(
@@ -93,21 +103,40 @@ class _StreakCardState extends State<StreakCard> {
             width: 2.0,
           )),
         ),
-        child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
-              Column(
+              Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text(widget.username, style: TextStyle(fontSize: 18.0)),
-                    Text(widget.name, style: TextStyle(fontSize: 14.0)),
+                    Text("${widget.username} (${widget.name})",
+                        style: TextStyle(fontSize: 18.0)),
+                    Text("5", style: TextStyle(fontSize: 18.0)),
                   ]),
-              TextButton(
-                style: addFriendButtonStyle,
-                onPressed: onTapped,
-                child:
-                    const Text("Send song", style: TextStyle(fontSize: 19.0)),
+              Container(
+                padding: EdgeInsets.only(top: 5.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      style: addFriendButtonStyle.copyWith(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(pink)),
+                      onPressed: () => {},
+                      child: const Text("Open song",
+                          style: TextStyle(fontSize: 19.0)),
+                    ),
+                    TextButton(
+                      style: addFriendButtonStyle,
+                      onPressed: onTapped,
+                      child: const Text("Send song",
+                          style: TextStyle(fontSize: 19.0)),
+                    )
+                  ],
+                ),
               )
             ]));
   }
