@@ -99,6 +99,12 @@ TextStyle welcomeTextStyle = const TextStyle(
       )
     ]);
 
+TextStyle songInfoTextStyle = const TextStyle(
+  color: Colors.white,
+  fontFamily: 'ProximaSans',
+  fontSize: 18.0,
+);
+
 ButtonStyle addFriendButtonStyle = ButtonStyle(
     backgroundColor: MaterialStateProperty.all<Color>(teal),
     foregroundColor: MaterialStateProperty.all<Color>(Colors.white),

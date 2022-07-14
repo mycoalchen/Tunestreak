@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter/src/widgets/image.dart'
+    as fImage; // Flutter-defined Image; prevent conflict with Spotify-defined image
 import 'package:spotify/spotify.dart';
 import 'package:just_audio/just_audio.dart';
 import 'user_provider.dart';
@@ -83,12 +85,66 @@ class _StreakCardState extends State<StreakCard> {
     for (PlayHistory p in rp.getRange(0, 8)) {
       print(p.track!.name!);
     }
-    // final topTracks = await up.spotify.me.topTracks();
-    // final topTrackIds = topTracks.take(8).map((track) => track.id).toList();
-    // for (int i = 0; i < topTrackIds.length; i++) {
-    //   Track track = await up.spotify.tracks.get(topTrackIds[i]!);
-    //   print(track.name);
-    // }
+  }
+
+  // clips a string to length with "..." at the end if clipped
+  String clipString(String string, int length) {
+    if (string.length > length) {
+      return string.substring(0, length) + "...";
+    } else
+      return string;
+  }
+
+  Future<void> showSongsToSend(BuildContext context) async {
+    List<Row> songRows = List<Row>.empty(growable: true);
+    UserProvider up = Provider.of<UserProvider>(context, listen: false);
+    Stopwatch s = Stopwatch();
+    List<PlayHistory> recentlyPlayed =
+        (await up.spotify.me.recentlyPlayed(limit: 8)).toList()
+            as List<PlayHistory>;
+    for (PlayHistory ph in recentlyPlayed) {
+      Track track = await up.spotify.tracks.get(ph.track!.id!);
+      fImage.Image trackImage =
+          fImage.Image.network(track.album!.images![0].url!);
+      songRows.add(Row(
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Container(
+              padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
+              height: 60,
+              child: FittedBox(
+                fit: BoxFit.fill,
+                child: trackImage,
+              )),
+          Container(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(clipString(track.name!, 25), style: songInfoTextStyle),
+                Text(clipString(track.artists![0].name!, 25),
+                    style: songInfoTextStyle),
+              ],
+            ),
+          )
+        ],
+      ));
+    }
+    showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (context) {
+          return Container(
+              height: 500,
+              decoration: BoxDecoration(
+                color: darkGray,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: const EdgeInsets.fromLTRB(6, 0, 6, 12),
+              child: ListView(
+                children: songRows,
+              ));
+        });
   }
 
   @override
@@ -131,7 +187,7 @@ class _StreakCardState extends State<StreakCard> {
                     ),
                     TextButton(
                       style: addFriendButtonStyle,
-                      onPressed: onTapped,
+                      onPressed: () => showSongsToSend(context),
                       child: const Text("Send song",
                           style: TextStyle(fontSize: 19.0)),
                     )
