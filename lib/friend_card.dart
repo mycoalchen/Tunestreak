@@ -69,6 +69,9 @@ class StreakCard extends StatefulWidget {
 }
 
 class _StreakCardState extends State<StreakCard> {
+  // whether showSongsToSend is still being run
+  bool isLoading = false;
+
   Future<void> onTapped() async {
     UserProvider up = Provider.of<UserProvider>(context, listen: false);
     // Track b3d = await up.spotify.tracks
@@ -96,55 +99,69 @@ class _StreakCardState extends State<StreakCard> {
   }
 
   Future<void> showSongsToSend(BuildContext context) async {
+    setState(() => isLoading = true);
+    // Get recently played songs from Spotify API
     List<Row> songRows = List<Row>.empty(growable: true);
     UserProvider up = Provider.of<UserProvider>(context, listen: false);
-    Stopwatch s = Stopwatch();
-    List<PlayHistory> recentlyPlayed =
-        (await up.spotify.me.recentlyPlayed(limit: 8)).toList()
-            as List<PlayHistory>;
-    for (PlayHistory ph in recentlyPlayed) {
-      Track track = await up.spotify.tracks.get(ph.track!.id!);
-      fImage.Image trackImage =
-          fImage.Image.network(track.album!.images![0].url!);
-      songRows.add(Row(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Container(
-              padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
+    await up.spotify.me.recentlyPlayed(limit: 8).then((value) async {
+      List<PlayHistory> recentlyPlayed = value.toList();
+      for (PlayHistory ph in recentlyPlayed) {
+        Track track = await up.spotify.tracks.get(ph.track!.id!);
+        fImage.Image trackImage =
+            fImage.Image.network(track.album!.images![0].url!);
+        // Add a row for each song
+        songRows.add(Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Container(
+                padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
+                height: 60,
+                child: FittedBox(
+                  fit: BoxFit.fill,
+                  child: trackImage,
+                )),
+            Container(
+              padding: const EdgeInsets.all(8),
               height: 60,
-              child: FittedBox(
-                fit: BoxFit.fill,
-                child: trackImage,
-              )),
-          Container(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(clipString(track.name!, 25), style: songInfoTextStyle),
-                Text(clipString(track.artists![0].name!, 25),
-                    style: songInfoTextStyle),
-              ],
-            ),
-          )
-        ],
-      ));
-    }
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(clipString(track.name!, 25), style: songInfoTextStyle),
+                  Text(clipString(track.artists![0].name!, 25),
+                      style: songInfoTextStyle),
+                ],
+              ),
+            )
+          ],
+        ));
+      }
+    });
+    setState(() => isLoading = false);
     showModalBottomSheet(
         context: context,
         backgroundColor: Colors.transparent,
         builder: (context) {
           return Container(
               height: 500,
+              margin: const EdgeInsets.fromLTRB(6, 0, 6, 12),
               decoration: BoxDecoration(
                 color: darkGray,
                 borderRadius: BorderRadius.circular(12),
               ),
-              margin: const EdgeInsets.fromLTRB(6, 0, 6, 12),
-              child: ListView(
-                children: songRows,
-              ));
+              child: ListView.builder(
+                  itemCount: 8,
+                  itemBuilder: (BuildContext context, int index) {
+                    return songRows[index];
+                  }));
         });
+  }
+
+  String sendSongText() {
+    if (isLoading) {
+      return "Loading...";
+    } else {
+      return "Send song";
+    }
   }
 
   @override
@@ -188,8 +205,8 @@ class _StreakCardState extends State<StreakCard> {
                     TextButton(
                       style: addFriendButtonStyle,
                       onPressed: () => showSongsToSend(context),
-                      child: const Text("Send song",
-                          style: TextStyle(fontSize: 19.0)),
+                      child: Text(sendSongText(),
+                          style: const TextStyle(fontSize: 19.0)),
                     )
                   ],
                 ),
