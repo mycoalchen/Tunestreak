@@ -5,13 +5,7 @@ import 'package:tunestreak/user_provider.dart';
 import 'user_profile.dart';
 import 'friend_card.dart';
 import 'constants.dart';
-
-class Friend {
-  String name = "name";
-  String username = "username";
-  String id = "id";
-  Friend(this.name, this.username, this.id);
-}
+import 'utilities.dart';
 
 class AddFriendsPage extends StatefulWidget {
   const AddFriendsPage({Key? key}) : super(key: key);
@@ -25,10 +19,10 @@ class AddFriendsPageState extends State<AddFriendsPage> {
   final firestore = FirebaseFirestore.instance;
 
   final _friendSearchController = TextEditingController();
-  var _friendsList = List<Friend>.empty();
+  var _friendsList = List<TsUser>.empty();
 
   void _friendSearchControllerListener() {
-    var newFriendsList = List<Friend>.empty(growable: true);
+    var newFriendsList = List<TsUser>.empty(growable: true);
     firestore
         .collection("users")
         .where("username", isEqualTo: _friendSearchController.text)
@@ -36,7 +30,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
         .then((QuerySnapshot res) {
       for (QueryDocumentSnapshot<Object?> doc in res.docs) {
         print("Found user");
-        Friend friend = Friend(doc.get('name'), doc.get('username'), doc.id);
+        TsUser friend = TsUser(doc.get('name'), doc.get('username'), doc.id);
         print("Added user");
         newFriendsList.add(friend);
       }
@@ -101,9 +95,11 @@ class AddFriendsPageState extends State<AddFriendsPage> {
               itemCount: _friendsList.length,
               itemBuilder: (BuildContext context, int index) {
                 return AddFriendCard(
-                    _friendsList[index].name,
-                    _friendsList[index].username,
-                    _friendsList[index].id,
+                    TsUser(
+                      _friendsList[index].name,
+                      _friendsList[index].username,
+                      _friendsList[index].fbDocId,
+                    ),
                     firestore);
               }))
     ]));

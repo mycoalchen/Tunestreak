@@ -5,6 +5,7 @@ import 'friend_card.dart';
 import 'add_friends.dart';
 import 'user_provider.dart';
 import 'constants.dart';
+import 'utilities.dart';
 
 class StreaksPage extends StatefulWidget {
   const StreaksPage({Key? key}) : super(key: key);
@@ -15,7 +16,6 @@ class StreaksPage extends StatefulWidget {
 
 class StreaksPageState extends State<StreaksPage> {
   final firestore = FirebaseFirestore.instance;
-  var _friendsList = List<Friend>.empty();
 
   @override
   void initState() {
@@ -24,7 +24,7 @@ class StreaksPageState extends State<StreaksPage> {
   }
 
   Future<void> getAllFriends() async {
-    var friendsList = List<Friend>.empty(growable: true);
+    var friendsList = List<TsUser>.empty(growable: true);
     final users = firestore.collection("users");
     users
         .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
@@ -40,16 +40,19 @@ class StreaksPageState extends State<StreaksPage> {
             .then((DocumentSnapshot friend) {
           print("Adding friend " + friend.id + ": " + friend.get("name"));
           friendsList.add(
-              Friend(friend.get("name"), friend.get("username"), friend.id));
+              TsUser(friend.get("name"), friend.get("username"), friend.id));
         });
       }
       if (!mounted) return;
-      setState(() => _friendsList = friendsList);
+      Provider.of<UserProvider>(context, listen: false)
+          .setFriendsList(friendsList);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    List<TsUser> _friendsList =
+        Provider.of<UserProvider>(context, listen: true).friendsList;
     return Scaffold(
         body: Column(children: [
       Expanded(
@@ -57,9 +60,11 @@ class StreaksPageState extends State<StreaksPage> {
               itemCount: _friendsList.length,
               itemBuilder: (BuildContext context, int index) {
                 return StreakCard(
-                    _friendsList[index].name,
-                    _friendsList[index].username,
-                    _friendsList[index].id,
+                    TsUser(
+                      _friendsList[index].name,
+                      _friendsList[index].username,
+                      _friendsList[index].fbDocId,
+                    ),
                     firestore);
               }))
     ]));

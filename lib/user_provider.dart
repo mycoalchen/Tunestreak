@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:spotify/spotify.dart' as spt;
 import 'dart:math' as math;
+import 'utilities.dart';
 
 class UserProvider extends ChangeNotifier {
   late spt.SpotifyApi spotify;
@@ -10,6 +11,8 @@ class UserProvider extends ChangeNotifier {
   late String email;
   late String fbDocId;
   late String id;
+
+  var friendsList = List<TsUser>.empty(growable: true);
 
   late CircleAvatar profilePicture = CircleAvatar(
     backgroundColor:
@@ -36,6 +39,11 @@ class UserProvider extends ChangeNotifier {
     username = newUsername;
     email = newEmail;
     fbDocId = newFbDocId;
+    notifyListeners();
+  }
+
+  void setFriendsList(List<TsUser> newFriendsList) {
+    friendsList = newFriendsList;
     notifyListeners();
   }
 
