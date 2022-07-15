@@ -223,14 +223,7 @@ class _StreakCardState extends State<StreakCard> {
   Widget build(BuildContext context) {
     return Container(
         padding: EdgeInsets.fromLTRB(30, 10, 30, 0),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(
-              bottom: BorderSide(
-            color: circleColor,
-            width: 2.0,
-          )),
-        ),
+        decoration: userCardDecoration,
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,

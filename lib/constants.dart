@@ -82,6 +82,12 @@ TextStyle titleTextStyle = const TextStyle(
   fontSize: 20,
 );
 
+TextStyle header1 = const TextStyle(
+  color: darkGray,
+  fontSize: 19.0,
+  fontWeight: FontWeight.w700,
+);
+
 TextStyle settingsTitleStyle = const TextStyle(
   color: darkGray,
   fontSize: 15,
@@ -112,6 +118,15 @@ ButtonStyle addFriendButtonStyle = ButtonStyle(
         RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(20.0),
     )));
+
+BoxDecoration userCardDecoration = const BoxDecoration(
+  color: Colors.white,
+  border: Border(
+      bottom: BorderSide(
+    color: circleColor,
+    width: 2.0,
+  )),
+);
 
 const circleColor = Color.fromRGBO(210, 210, 210, 1);
 const teal = Color(0xff2bd4b2);
