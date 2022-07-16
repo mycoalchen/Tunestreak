@@ -7,9 +7,7 @@ import 'utilities.dart';
 import 'constants.dart';
 
 class SendSongPage extends StatefulWidget {
-  final Set<TsUser>? selectedFriends;
-
-  const SendSongPage({Key? key, this.selectedFriends}) : super(key: key);
+  const SendSongPage({Key? key}) : super(key: key);
 
   @override
   State<SendSongPage> createState() => SendSongPageState();
@@ -17,28 +15,17 @@ class SendSongPage extends StatefulWidget {
 
 class SendSongPageState extends State<SendSongPage> {
   late List<TsUser> friendsList;
-  late Map<TsUser, bool> sendTo;
 
   @override
   void initState() {
     super.initState();
     friendsList = Provider.of<UserProvider>(context, listen: false).friendsList;
-    sendTo = Map<TsUser, bool>.from({});
-    if (widget.selectedFriends != null) {
-      for (TsUser friend in friendsList) {
-        print(friend);
-        print(widget.selectedFriends!.first);
-        sendTo[friend] = widget.selectedFriends!.contains(friend);
-      }
-    } else {
-      for (TsUser friend in friendsList) {
-        sendTo[friend] = false;
-      }
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    Map<TsUser, bool> sendTo =
+        Provider.of<UserProvider>(context, listen: true).sendTo;
     return Scaffold(
       body: Column(children: [
         AppBar(

@@ -8,7 +8,9 @@ import 'constants.dart';
 import 'utilities.dart';
 
 class StreaksPage extends StatefulWidget {
-  const StreaksPage({Key? key}) : super(key: key);
+  final void Function() openSendSong;
+
+  const StreaksPage({Key? key, required this.openSendSong}) : super(key: key);
 
   @override
   State<StreaksPage> createState() => StreaksPageState();
@@ -20,33 +22,6 @@ class StreaksPageState extends State<StreaksPage> {
   @override
   void initState() {
     super.initState();
-    getAllFriends();
-  }
-
-  Future<void> getAllFriends() async {
-    var friendsList = List<TsUser>.empty(growable: true);
-    final users = firestore.collection("users");
-    users
-        .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
-        .collection('friends')
-        .get()
-        .then((QuerySnapshot res) async {
-      print("Running through friends");
-      for (QueryDocumentSnapshot<Object?> doc in res.docs) {
-        if (!mounted) return;
-        await users
-            .doc(doc.get("fbDocId"))
-            .get()
-            .then((DocumentSnapshot friend) {
-          print("Adding friend " + friend.id + ": " + friend.get("name"));
-          friendsList.add(
-              TsUser(friend.get("name"), friend.get("username"), friend.id));
-        });
-      }
-      if (!mounted) return;
-      Provider.of<UserProvider>(context, listen: false)
-          .setFriendsList(friendsList);
-    });
   }
 
   @override
@@ -65,7 +40,8 @@ class StreaksPageState extends State<StreaksPage> {
                       _friendsList[index].username,
                       _friendsList[index].fbDocId,
                     ),
-                    firestore);
+                    firestore,
+                    widget.openSendSong);
               }))
     ]));
   }

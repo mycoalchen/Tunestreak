@@ -15,11 +15,11 @@ class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   Duration pageTurnDuration = const Duration(milliseconds: 300);
   Curve pageTurnCurve = Curves.ease;
-  final PageController _controller = PageController(initialPage: 0);
+  final PageController controller = PageController(initialPage: 0);
 
   @override
   void dispose() {
-    _controller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -39,12 +39,6 @@ class _HomeScreenState extends State<HomeScreen>
     ),
   ];
 
-  static const List<Widget> _pages = <Widget>[
-    StreaksPage(),
-    SendSongPage(),
-    AddFriendsPage(),
-  ];
-
   int _selectedIndex = 0;
 
   @override
@@ -55,20 +49,27 @@ class _HomeScreenState extends State<HomeScreen>
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      _controller.jumpToPage(index);
+      controller.jumpToPage(index);
     });
   }
 
   void _goForward() {
-    _controller.nextPage(duration: pageTurnDuration, curve: pageTurnCurve);
+    controller.nextPage(duration: pageTurnDuration, curve: pageTurnCurve);
   }
 
   void _goBack() {
-    _controller.previousPage(duration: pageTurnDuration, curve: pageTurnCurve);
+    controller.previousPage(duration: pageTurnDuration, curve: pageTurnCurve);
   }
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> _pages = <Widget>[
+      StreaksPage(
+        openSendSong: _goForward,
+      ),
+      const SendSongPage(),
+      const AddFriendsPage(),
+    ];
     return Scaffold(
       appBar: HomeAppBar(
         title: homeNavBarItems[_selectedIndex].label,
@@ -88,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen>
                 });
               },
               itemCount: 3,
-              controller: _controller,
+              controller: controller,
               physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
                 return Center(child: _pages.elementAt(_selectedIndex));

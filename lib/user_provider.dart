@@ -13,6 +13,7 @@ class UserProvider extends ChangeNotifier {
   late String id;
 
   var friendsList = List<TsUser>.empty(growable: true);
+  Map<TsUser, bool> sendTo = {};
 
   late CircleAvatar profilePicture = CircleAvatar(
     backgroundColor:
@@ -49,6 +50,16 @@ class UserProvider extends ChangeNotifier {
 
   void addFriend(TsUser newFriend) {
     friendsList.add(newFriend);
+    notifyListeners();
+  }
+
+  void setSendTo(Map<TsUser, bool> newSendTo) {
+    sendTo = newSendTo;
+    notifyListeners();
+  }
+
+  void updateSendTo(TsUser friend, bool send) {
+    sendTo[friend] = send;
     notifyListeners();
   }
 

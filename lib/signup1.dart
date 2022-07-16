@@ -16,6 +16,7 @@ import 'home.dart';
 import 'user_provider.dart';
 import 'user_provider.dart';
 import 'login_webview.dart';
+import 'utilities.dart';
 
 class Signup1 extends StatefulWidget {
   @override
@@ -139,6 +140,37 @@ class _Signup1State extends State<Signup1> {
             Provider.of<UserProvider>(context, listen: false).setId(
               fbUserObject.get("id"),
             );
+            // Set friendsList
+            var friendsList = List<TsUser>.empty(growable: true);
+            final users = firestore.collection("users");
+            await users
+                .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
+                .collection('friends')
+                .get()
+                .then((QuerySnapshot res) async {
+              print("Running through friends");
+              for (QueryDocumentSnapshot<Object?> doc in res.docs) {
+                if (!mounted) return;
+                await users
+                    .doc(doc.get("fbDocId"))
+                    .get()
+                    .then((DocumentSnapshot friend) {
+                  print(
+                      "Adding friend " + friend.id + ": " + friend.get("name"));
+                  friendsList.add(TsUser(
+                      friend.get("name"), friend.get("username"), friend.id));
+                });
+              }
+              if (!mounted) return;
+            });
+            Provider.of<UserProvider>(context, listen: false)
+                .setFriendsList(friendsList);
+            // Set sendTo
+            Map<TsUser, bool> sendTo = {};
+            for (TsUser friend in friendsList) {
+              sendTo[friend] = false;
+            }
+            Provider.of<UserProvider>(context, listen: false).setSendTo(sendTo);
             // Check if this user has a profile picture
             final fbDocId =
                 Provider.of<UserProvider>(context, listen: false).fbDocId;

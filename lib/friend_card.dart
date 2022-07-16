@@ -66,7 +66,10 @@ class _AddFriendCardState extends State<AddFriendCard> {
 class StreakCard extends StatefulWidget {
   final TsUser user;
   final FirebaseFirestore firestore;
-  const StreakCard(this.user, this.firestore);
+  // function to move page controller to Send Song tab
+  final void Function() openSendSong;
+
+  const StreakCard(this.user, this.firestore, this.openSendSong);
 
   @override
   State<StreakCard> createState() => _StreakCardState();
@@ -78,11 +81,14 @@ class _StreakCardState extends State<StreakCard> {
   List<bool> currentlyPlaying = List<bool>.filled(8, false);
 
   void onSendSongTapped(context) {
-    Set<TsUser> friends = Set<TsUser>.from({widget.user});
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: ((context) => SendSongPage(
-              selectedFriends: friends,
-            ))));
+    Map<TsUser, bool> sendTo = {};
+    for (var friend
+        in Provider.of<UserProvider>(context, listen: false).friendsList) {
+      sendTo[friend] = false;
+    }
+    sendTo[widget.user] = true;
+    Provider.of<UserProvider>(context, listen: false).setSendTo(sendTo);
+    widget.openSendSong();
   }
 
   // trackIndex is the index of this track in recentlyPlayed
