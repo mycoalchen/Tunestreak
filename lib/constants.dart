@@ -127,6 +127,9 @@ BoxDecoration userCardDecoration = const BoxDecoration(
     width: 2.0,
   )),
 );
+BoxDecoration sendToCardDecoration = const BoxDecoration(
+  color: Colors.white,
+);
 
 const circleColor = Color.fromRGBO(210, 210, 210, 1);
 const teal = Color(0xff2bd4b2);

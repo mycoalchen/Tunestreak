@@ -47,6 +47,11 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void addFriend(TsUser newFriend) {
+    friendsList.add(newFriend);
+    notifyListeners();
+  }
+
   void setProfilePicture(CircleAvatar? newPp) {
     if (newPp == null) {
       profilePicture = CircleAvatar(

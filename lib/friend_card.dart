@@ -5,6 +5,7 @@ import 'package:flutter/src/widgets/image.dart'
     as fImage; // Flutter-defined Image; prevent conflict with Spotify-defined image
 import 'package:spotify/spotify.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:tunestreak/send_song.dart';
 import 'user_provider.dart';
 import 'utilities.dart';
 import 'constants.dart';
@@ -25,6 +26,7 @@ class _AddFriendCardState extends State<AddFriendCard> {
         .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
         .collection("friends")
         .add({"fbDocId": widget.user.fbDocId, "streak": 0});
+    Provider.of<UserProvider>(context, listen: false).addFriend(widget.user);
   }
 
   @override
@@ -75,13 +77,12 @@ class _StreakCardState extends State<StreakCard> {
   bool isLoading = false;
   List<bool> currentlyPlaying = List<bool>.filled(8, false);
 
-  Future<void> onSendSongTapped() async {
-    UserProvider up = Provider.of<UserProvider>(context, listen: false);
-    List<PlayHistory> rp =
-        (await up.spotify.me.recentlyPlayed()).toList() as List<PlayHistory>;
-    for (PlayHistory p in rp.getRange(0, 8)) {
-      print(p.track!.name!);
-    }
+  void onSendSongTapped(context) {
+    Set<TsUser> friends = Set<TsUser>.from({widget.user});
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: ((context) => SendSongPage(
+              selectedFriends: friends,
+            ))));
   }
 
   // trackIndex is the index of this track in recentlyPlayed
@@ -252,7 +253,7 @@ class _StreakCardState extends State<StreakCard> {
                     ),
                     TextButton(
                       style: addFriendButtonStyle,
-                      onPressed: () => showSongsToSend(context),
+                      onPressed: () => onSendSongTapped(context),
                       child: Text(sendSongText(),
                           style: const TextStyle(fontSize: 19.0)),
                     )
