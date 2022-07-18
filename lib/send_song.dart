@@ -22,6 +22,8 @@ class SendSongPageState extends State<SendSongPage> {
   int songsLoaded = 0;
   List<bool> currentlyPlaying = List<bool>.filled(8, false);
   List<Track> recentlyPlayed = List<Track>.empty(growable: true);
+  // AudioPlayer audioPlayer = AudioPlayer();
+  static AudioPlayer audioPlayer = AudioPlayer();
 
   // Return either a play or pause icon
   IconData playPause(int index) {
@@ -35,19 +37,28 @@ class SendSongPageState extends State<SendSongPage> {
   // Set state of this song to playing, start playing preview
   // trackIndex is the index of this track in recentlyPlayed
   Future<void> onPlaySongTapped(String trackId, int trackIndex) async {
-    Track track = await Provider.of<UserProvider>(context, listen: false)
-        .spotify
-        .tracks
-        .get(trackId);
-    final player = AudioPlayer();
-    if (track.previewUrl != null) {
-      final duration = await player.setUrl(track.previewUrl!);
-      player.play();
-      setState(() {
-        currentlyPlaying[trackIndex] = true;
-      });
+    if (!currentlyPlaying[trackIndex]) {
+      // Pause all other players
+      for (int i = 0; i < recentlyPlayed.length; i++) {
+        setState(() => currentlyPlaying[i] = false);
+      }
+      Track track = await Provider.of<UserProvider>(context, listen: false)
+          .spotify
+          .tracks
+          .get(trackId);
+      if (track.previewUrl != null) {
+        setState(() => currentlyPlaying[trackIndex] = true);
+        audioPlayer.pause();
+        await audioPlayer.setUrl(track.previewUrl!);
+        audioPlayer.play();
+      } else {
+        print("ERROR: PREVIEW NULL");
+      }
     } else {
-      print("ERROR: PREVIEW NULL");
+      audioPlayer.pause();
+      setState(() {
+        currentlyPlaying[trackIndex] = false;
+      });
     }
   }
 
@@ -61,7 +72,7 @@ class SendSongPageState extends State<SendSongPage> {
       for (int i = 0; i < songList.length; i++) {
         Track track = await up.spotify.tracks.get(songList[i].track!.id!);
         songs.add(track);
-        print("added track $i");
+        if (!mounted) return;
         setState(() {
           recentlyPlayed = songs;
           songsLoaded += 1;
@@ -79,6 +90,7 @@ class SendSongPageState extends State<SendSongPage> {
 
   @override
   void dispose() {
+    audioPlayer.pause();
     super.dispose();
   }
 
