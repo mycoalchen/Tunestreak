@@ -1,6 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
+import 'package:spotify/spotify.dart';
+import 'package:flutter/src/widgets/image.dart'
+    as fImage; // Flutter-defined Image; prevent conflict with Spotify-defined image
 import 'add_friends.dart';
 import 'user_provider.dart';
 import 'utilities.dart';
@@ -15,11 +19,139 @@ class SendSongPage extends StatefulWidget {
 
 class SendSongPageState extends State<SendSongPage> {
   late List<TsUser> friendsList;
+  int songsLoaded = 0;
+  List<bool> currentlyPlaying = List<bool>.filled(8, false);
+  List<Track> recentlyPlayed = List<Track>.empty(growable: true);
+
+  // Return either a play or pause icon
+  IconData playPause(int index) {
+    if (currentlyPlaying[index]) {
+      return Icons.pause;
+    } else {
+      return Icons.play_arrow;
+    }
+  }
+
+  // Set state of this song to playing, start playing preview
+  // trackIndex is the index of this track in recentlyPlayed
+  Future<void> onPlaySongTapped(String trackId, int trackIndex) async {
+    Track track = await Provider.of<UserProvider>(context, listen: false)
+        .spotify
+        .tracks
+        .get(trackId);
+    final player = AudioPlayer();
+    if (track.previewUrl != null) {
+      final duration = await player.setUrl(track.previewUrl!);
+      player.play();
+      setState(() {
+        currentlyPlaying[trackIndex] = true;
+      });
+    } else {
+      print("ERROR: PREVIEW NULL");
+    }
+  }
+
+  // Gets recently played songs from Spotify API, sets songRows state to those songs
+  Future<void> loadSongs() async {
+    // Get recently played songs from Spotify API
+    List<Track> songs = List<Track>.empty(growable: true);
+    UserProvider up = Provider.of<UserProvider>(context, listen: false);
+    await up.spotify.me.recentlyPlayed(limit: 8).then((value) async {
+      List<PlayHistory> songList = value.toList();
+      for (int i = 0; i < songList.length; i++) {
+        Track track = await up.spotify.tracks.get(songList[i].track!.id!);
+        songs.add(track);
+        print("added track $i");
+        setState(() {
+          recentlyPlayed = songs;
+          songsLoaded += 1;
+        });
+      }
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     friendsList = Provider.of<UserProvider>(context, listen: false).friendsList;
+    loadSongs();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Widget _buildSongsList() {
+    if (songsLoaded == 0) {
+      return Container(child: Text("Loading..."));
+    } else {
+      return Expanded(
+        child: ListView.builder(
+            itemCount: songsLoaded,
+            itemBuilder: (BuildContext context, int index) {
+              Track track = recentlyPlayed[index];
+              return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+                      Container(
+                          padding: EdgeInsets.fromLTRB(30, 5, 10, 5),
+                          height: 50,
+                          child: FittedBox(
+                            fit: BoxFit.fill,
+                            child: fImage.Image.network(
+                                track.album!.images![0].url!),
+                          )),
+                      Container(
+                          padding: const EdgeInsets.all(8),
+                          height: 60,
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(clipString(track.name!, 23),
+                                    style: songInfoTextStyle),
+                                Text(
+                                  clipString(track.artists![0].name!, 18),
+                                  style: songInfoTextStyle,
+                                )
+                              ])),
+                    ]),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 30, 0),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            RawMaterialButton(
+                              constraints:
+                                  BoxConstraints.tight(const Size(38, 38)),
+                              onPressed: () =>
+                                  onPlaySongTapped(track.id!, index),
+                              elevation: 2.0,
+                              fillColor: spotifyGreen,
+                              shape: const CircleBorder(),
+                              child: Icon(
+                                playPause(index),
+                                size: 26.0,
+                                color: Colors.black,
+                              ),
+                            ),
+                            RawMaterialButton(
+                              constraints:
+                                  BoxConstraints.tight(const Size(38, 38)),
+                              onPressed: () {},
+                              elevation: 2.0,
+                              fillColor: teal,
+                              shape: const CircleBorder(),
+                              child: const Icon(Icons.send,
+                                  size: 25.0, color: Colors.black),
+                            ),
+                          ]),
+                    )
+                  ]);
+            }),
+      );
+    }
   }
 
   @override
@@ -28,6 +160,7 @@ class SendSongPageState extends State<SendSongPage> {
         Provider.of<UserProvider>(context, listen: true).sendTo;
     return Scaffold(
       body: Column(children: [
+        // Friends list
         AppBar(
           backgroundColor: Colors.transparent,
           toolbarHeight: 50.0,
@@ -61,6 +194,7 @@ class SendSongPageState extends State<SendSongPage> {
                             }),
                       ]));
             }),
+        // Song list
         AppBar(
           backgroundColor: Colors.transparent,
           toolbarHeight: 50.0,
@@ -68,7 +202,8 @@ class SendSongPageState extends State<SendSongPage> {
           automaticallyImplyLeading: false,
           title: Text("Select songs", style: header1),
           elevation: 0,
-        )
+        ),
+        _buildSongsList(),
       ]),
     );
   }

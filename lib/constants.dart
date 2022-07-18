@@ -106,7 +106,7 @@ TextStyle welcomeTextStyle = const TextStyle(
     ]);
 
 TextStyle songInfoTextStyle = const TextStyle(
-  color: Colors.white,
+  color: darkGray,
   fontFamily: 'ProximaSans',
   fontSize: 16.0,
 );
