@@ -30,7 +30,7 @@ class AuthWebView extends StatefulWidget {
 }
 
 class _AuthWebViewState extends State<AuthWebView> {
-  final GlobalKey webViewKey = GlobalKey();
+  final Key webViewKey = const Key('');
 
   bool isLoading = false;
 
@@ -110,6 +110,7 @@ class _AuthWebViewState extends State<AuthWebView> {
                         this.url = url.toString();
                         urlController.text = this.url;
                         if (this.url.startsWith(widget.redirectUri)) {
+                          return;
                           setState(() {
                             isLoading = true;
                           });
@@ -117,7 +118,21 @@ class _AuthWebViewState extends State<AuthWebView> {
                         }
                       });
                     },
+                    shouldOverrideUrlLoading:
+                        (controller, navigationAction) async {
+                      final uri = navigationAction.request.url!;
+                      if (uri.toString().startsWith(spotifyRedirectUri)) {
+                        setState(() {
+                          isLoading = true;
+                        });
+                        widget.responseUriWrapper.setValue(uri.toString());
+                        print("CANCELLED");
+                        return NavigationActionPolicy.CANCEL;
+                      }
+                    },
                     onLoadError: (controller, url, code, message) {
+                      print(
+                          "InAppWebView LoadError: ${code} - ${message} - url ${url}");
                       pullToRefreshController.endRefreshing();
                     },
                     onProgressChanged: (controller, progress) {
