@@ -125,9 +125,10 @@ class SendSongPageState extends State<SendSongPage> {
                                       track.album!.images![0].url!),
                                 )),
                             Container(
-                                padding: const EdgeInsets.all(8),
-                                height: 60,
+                                padding: const EdgeInsets.fromLTRB(5, 5, 0, 5),
+                                height: 70,
                                 child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
@@ -140,7 +141,7 @@ class SendSongPageState extends State<SendSongPage> {
                                     ])),
                           ]),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 0, 30, 0),
+                        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
                         child: Row(
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
