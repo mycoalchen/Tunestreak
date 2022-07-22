@@ -107,7 +107,7 @@ TextStyle welcomeTextStyle = const TextStyle(
 TextStyle songInfoTextStyle = const TextStyle(
   color: darkGray,
   // fontFamily: 'ProximaSans',
-  fontSize: 12.0,
+  fontSize: 11.0,
 );
 
 ButtonStyle addFriendButtonStyle = ButtonStyle(

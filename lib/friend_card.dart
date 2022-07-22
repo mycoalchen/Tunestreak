@@ -23,7 +23,7 @@ class _AddFriendCardState extends State<AddFriendCard> {
         .collection("users")
         .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
         .collection("friends")
-        .add({"fbDocId": widget.user.fbDocId, "streak": 0});
+        .add({"fbDocId": widget.user.fbDocId, "streak": 0, 'sentSongs': []});
     Provider.of<UserProvider>(context, listen: false).addFriend(widget.user);
   }
 

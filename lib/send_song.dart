@@ -22,8 +22,8 @@ class SendSongPageState extends State<SendSongPage> {
   int songsLoaded = 0;
   List<bool> currentlyPlaying = List<bool>.filled(8, false);
   List<Track> recentlyPlayed = List<Track>.empty(growable: true);
-  // AudioPlayer audioPlayer = AudioPlayer();
   static AudioPlayer audioPlayer = AudioPlayer();
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   // Return either a play or pause icon
   IconData playPause(int index) {
@@ -83,6 +83,40 @@ class SendSongPageState extends State<SendSongPage> {
 
   // Sends the song at trackIndex to the currently selected friends
   Future<void> sendSong(int trackIndex) async {
+    Map<TsUser, bool> sendTo =
+        Provider.of<UserProvider>(context, listen: false).sendTo;
+    String myFbDocId =
+        Provider.of<UserProvider>(context, listen: false).fbDocId;
+    for (var friend in sendTo.entries) {
+      if (!friend.value) {
+        continue;
+      }
+      final friendsFriendCollection = firestore
+          .collection("users")
+          .doc(friend.key.fbDocId)
+          .collection("friends");
+      // Add the id of this track to this user's entry in the friend's document of this user
+      await friendsFriendCollection
+          // Get the document in "friends" collection with this user's id
+          .where("fbDocId", isEqualTo: myFbDocId)
+          .get()
+          .then((QuerySnapshot res) async {
+        // res should only hold the document in "friends" representing this user
+        if (res.docs.isEmpty) {
+          print(
+              "ERROR: Tried to send song to nonexistent user - send_song.dart line 102");
+          return;
+        }
+        if (res.docs.length > 1) {
+          print(
+              "ERROR: More than one friends have same firebase doc id - send_song.dart line 102");
+          return;
+        }
+        await friendsFriendCollection.doc(res.docs[0].id).update({
+          "sentSongs": FieldValue.arrayUnion([recentlyPlayed[trackIndex].id])
+        });
+      });
+    }
     print("Sent song $trackIndex");
   }
 
@@ -117,7 +151,7 @@ class SendSongPageState extends State<SendSongPage> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Container(
-                                padding: EdgeInsets.fromLTRB(30, 5, 10, 5),
+                                padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
                                 height: 50,
                                 child: FittedBox(
                                   fit: BoxFit.fill,
@@ -125,7 +159,7 @@ class SendSongPageState extends State<SendSongPage> {
                                       track.album!.images![0].url!),
                                 )),
                             Container(
-                                padding: const EdgeInsets.fromLTRB(5, 5, 0, 5),
+                                padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
                                 height: 70,
                                 child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
