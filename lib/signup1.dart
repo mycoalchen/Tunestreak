@@ -234,7 +234,7 @@ class _Signup1State extends State<Signup1> {
     return Container(
       margin: const EdgeInsets.only(top: 7.5, bottom: 10.0),
       height: 50,
-      width: 270,
+      width: 300,
       child: ElevatedButton(
         onPressed: () => {_handleSpotifyButtonPress(context, userProvider)},
         style: loginButtonStyle,

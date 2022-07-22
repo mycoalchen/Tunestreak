@@ -136,7 +136,8 @@ class _AuthWebViewState extends State<AuthWebView> {
                       });
                     },
                     onConsoleMessage: (controller, consoleMessage) {
-                      print(consoleMessage);
+                      print("LoginWebview console message: " +
+                          consoleMessage.toString());
                     },
                   ),
                   progress < 1.0

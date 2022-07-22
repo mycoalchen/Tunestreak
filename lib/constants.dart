@@ -95,8 +95,7 @@ TextStyle settingsTitleStyle = const TextStyle(
 
 TextStyle welcomeTextStyle = const TextStyle(
     color: Colors.white,
-    fontFamily: 'OpenSans',
-    fontSize: 50.0,
+    fontSize: 45.0,
     fontWeight: FontWeight.bold,
     shadows: [
       Shadow(
@@ -107,7 +106,7 @@ TextStyle welcomeTextStyle = const TextStyle(
 
 TextStyle songInfoTextStyle = const TextStyle(
   color: darkGray,
-  fontFamily: 'ProximaSans',
+  // fontFamily: 'ProximaSans',
   fontSize: 16.0,
 );
 
