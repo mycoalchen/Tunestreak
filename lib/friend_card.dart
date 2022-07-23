@@ -62,12 +62,12 @@ class _AddFriendCardState extends State<AddFriendCard> {
 }
 
 class StreakCard extends StatefulWidget {
-  final TsUser user;
+  final TsUser friend;
   final FirebaseFirestore firestore;
   // function to move page controller to Send Song tab
   final void Function() openSendSong;
 
-  const StreakCard(this.user, this.firestore, this.openSendSong);
+  const StreakCard(this.friend, this.firestore, this.openSendSong);
 
   @override
   State<StreakCard> createState() => _StreakCardState();
@@ -83,7 +83,7 @@ class _StreakCardState extends State<StreakCard> {
         in Provider.of<UserProvider>(context, listen: false).friendsList) {
       sendTo[friend] = false;
     }
-    sendTo[widget.user] = true;
+    sendTo[widget.friend] = true;
     Provider.of<UserProvider>(context, listen: false).setSendTo(sendTo);
     widget.openSendSong();
   }
@@ -94,6 +94,50 @@ class _StreakCardState extends State<StreakCard> {
     } else {
       return "Send song";
     }
+  }
+
+  void onOpenSongTapped(context) async {
+    final friendsCollection = widget.firestore
+        .collection("users")
+        .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
+        .collection("friends");
+    String docId = "";
+    // Get the id of the doc of the friend in the friends collection
+    await friendsCollection
+        .where("fbDocId", isEqualTo: widget.friend.fbDocId)
+        .get()
+        .then((QuerySnapshot res) async {
+      if (res.docs.isEmpty) {
+        print(
+            "ERROR: Tried to open song from nonexistent user - friend_card.dart line 112");
+        return;
+      }
+      if (res.docs.length > 1) {
+        print(
+            "ERROR: More than one friends have same firebase doc id - friend_card.dart line 117");
+        return;
+      }
+      docId = res.docs[0].id;
+    });
+    await friendsCollection.doc(docId).get().then((value) async {
+      List<String> songs = List.from(value.get("sentSongs"));
+      await friendsCollection.doc(docId).update({
+        "sentSongs": FieldValue.arrayRemove([songs[0]])
+      });
+      // Play the song
+      AudioPlayer audioPlayer = AudioPlayer();
+      Track track = await Provider.of<UserProvider>(context, listen: false)
+          .spotify
+          .tracks
+          .get(songs[0]);
+      if (track.previewUrl != null) {
+        audioPlayer.pause();
+        await audioPlayer.setUrl(track.previewUrl!);
+        audioPlayer.play();
+      } else {
+        print("ERROR: PREVIEW NULL");
+      }
+    });
   }
 
   @override
@@ -109,7 +153,7 @@ class _StreakCardState extends State<StreakCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Text("${widget.user.username} (${widget.user.name})",
+                    Text("${widget.friend.username} (${widget.friend.name})",
                         style: TextStyle(fontSize: 18.0)),
                     Text("5", style: TextStyle(fontSize: 18.0)),
                   ]),
@@ -123,7 +167,7 @@ class _StreakCardState extends State<StreakCard> {
                       style: addFriendButtonStyle.copyWith(
                           backgroundColor:
                               MaterialStateProperty.all<Color>(pink)),
-                      onPressed: () => {},
+                      onPressed: () => onOpenSongTapped(context),
                       child: const Text("Open song",
                           style: TextStyle(fontSize: 19.0)),
                     ),
