@@ -67,7 +67,8 @@ class StreakCard extends StatefulWidget {
   // function to move page controller to Send Song tab
   final void Function() openSendSong;
 
-  const StreakCard(this.friend, this.firestore, this.openSendSong);
+  const StreakCard(this.friend, this.firestore, this.openSendSong, {Key? key})
+      : super(key: key);
 
   @override
   State<StreakCard> createState() => _StreakCardState();
@@ -76,6 +77,7 @@ class StreakCard extends StatefulWidget {
 class _StreakCardState extends State<StreakCard> {
   // whether showSongsToSend is still being run
   bool isLoading = false;
+  String streak = "...";
 
   void onSendSongTapped(context) {
     Map<TsUser, bool> sendTo = {};
@@ -86,6 +88,18 @@ class _StreakCardState extends State<StreakCard> {
     sendTo[widget.friend] = true;
     Provider.of<UserProvider>(context, listen: false).setSendTo(sendTo);
     widget.openSendSong();
+  }
+
+  Future<void> setStreak(BuildContext context) async {
+    widget.firestore
+        .collection("users")
+        .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
+        .collection("friends")
+        .where("fbDocId", isEqualTo: widget.friend.fbDocId)
+        .get()
+        .then((value) {
+      setState(() => streak = value.docs[0].get("streak").toString());
+    });
   }
 
   String sendSongText() {
@@ -101,8 +115,8 @@ class _StreakCardState extends State<StreakCard> {
         .collection("users")
         .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
         .collection("friends");
-    String docId = "";
-    // Get the id of the doc of the friend in the friends collection
+    String friendDocId = "";
+    // Get the id of the friend's doc in the user's friend collection
     await friendsCollection
         .where("fbDocId", isEqualTo: widget.friend.fbDocId)
         .get()
@@ -117,12 +131,14 @@ class _StreakCardState extends State<StreakCard> {
             "ERROR: More than one friends have same firebase doc id - friend_card.dart line 117");
         return;
       }
-      docId = res.docs[0].id;
+      friendDocId = res.docs[0].id;
     });
-    await friendsCollection.doc(docId).get().then((value) async {
+    await friendsCollection.doc(friendDocId).get().then((value) async {
       List<String> songs = List.from(value.get("sentSongs"));
-      await friendsCollection.doc(docId).update({
-        "sentSongs": FieldValue.arrayRemove([songs[0]])
+      await friendsCollection.doc(friendDocId).update({
+        "sentSongs": FieldValue.arrayRemove([songs[0]]),
+        // Update the streak
+        "streak": FieldValue.increment(1),
       });
       // Play the song
       AudioPlayer audioPlayer = AudioPlayer();
@@ -138,6 +154,30 @@ class _StreakCardState extends State<StreakCard> {
         print("ERROR: PREVIEW NULL");
       }
     });
+    // Update the streak in the friend's doc of this user
+    // Get the id of this user's doc in the friend's friends collection
+    await widget.firestore
+        .collection("users")
+        .doc(widget.friend.fbDocId)
+        .collection("friends")
+        .where("fbDocId",
+            isEqualTo:
+                Provider.of<UserProvider>(context, listen: false).fbDocId)
+        .get()
+        .then((res) async {
+      await widget.firestore
+          .collection("users")
+          .doc(widget.friend.fbDocId)
+          .collection("friends")
+          .doc(res.docs[0].id)
+          .update({"streak": FieldValue.increment(1)});
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    setStreak(context);
   }
 
   @override
@@ -155,7 +195,7 @@ class _StreakCardState extends State<StreakCard> {
                   children: <Widget>[
                     Text("${widget.friend.username} (${widget.friend.name})",
                         style: TextStyle(fontSize: 18.0)),
-                    Text("5", style: TextStyle(fontSize: 18.0)),
+                    Text(streak, style: TextStyle(fontSize: 18.0)),
                   ]),
               Container(
                 padding: EdgeInsets.only(top: 5.0),

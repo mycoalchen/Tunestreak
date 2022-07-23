@@ -113,7 +113,7 @@ class SendSongPageState extends State<SendSongPage> {
           return;
         }
         await friendsFriendCollection.doc(res.docs[0].id).update({
-          "sentSongs": FieldValue.arrayUnion([recentlyPlayed[trackIndex].id])
+          "sentSongs": FieldValue.arrayUnion([recentlyPlayed[trackIndex].id]),
         });
       });
     }
