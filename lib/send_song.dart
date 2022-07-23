@@ -167,10 +167,10 @@ class SendSongPageState extends State<SendSongPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(clipString(track.name!, 23),
-                                          style: songInfoTextStyle),
+                                          style: songInfoTextStyleSmall),
                                       Text(
                                         clipString(track.artists![0].name!, 18),
-                                        style: songInfoTextStyle,
+                                        style: songInfoTextStyleSmall,
                                       )
                                     ])),
                           ]),

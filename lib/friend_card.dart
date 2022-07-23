@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:spotify/spotify.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:tunestreak/send_song.dart';
+import 'package:flutter/src/widgets/image.dart'
+    as fImage; // Flutter-defined Image; prevent conflict with Spotify-defined image
 import 'user_provider.dart';
 import 'utilities.dart';
 import 'constants.dart';
@@ -78,6 +80,7 @@ class _StreakCardState extends State<StreakCard> {
   // whether showSongsToSend is still being run
   bool isLoading = false;
   String streak = "...";
+  bool pressed = false;
 
   void onSendSongTapped(context) {
     Map<TsUser, bool> sendTo = {};
@@ -111,6 +114,44 @@ class _StreakCardState extends State<StreakCard> {
   }
 
   void onOpenSongTapped(context) async {
+    // Open a Spotify popup
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return StatefulBuilder(
+              builder: (BuildContext context, StateSetter setModalState) {
+            return Container(
+                height: 600,
+                decoration: const BoxDecoration(color: spotifyBlack),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                          padding: EdgeInsets.fromLTRB(20, 30, 20, 0),
+                          height: 230,
+                          width: 230,
+                          child: FittedBox(
+                            fit: BoxFit.fill,
+                            child: fImage.Image.asset('assets/testImage.jpeg'),
+                          )),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                        child: Text("Troll Song", style: songInfoTextStyleBig),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 2.5, 20, 0),
+                        child: Text("Album name: Troll",
+                            style: songInfoTextStyleBig),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 2.5, 20, 0),
+                        child: Text("Artist name: Troll",
+                            style: songInfoTextStyleBig),
+                      ),
+                    ]));
+          });
+        });
     final friendsCollection = widget.firestore
         .collection("users")
         .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
@@ -140,6 +181,7 @@ class _StreakCardState extends State<StreakCard> {
         // Update the streak
         "streak": FieldValue.increment(1),
       });
+      // TODO: Move open Spotify popup here
       // Play the song
       AudioPlayer audioPlayer = AudioPlayer();
       Track track = await Provider.of<UserProvider>(context, listen: false)
@@ -208,8 +250,8 @@ class _StreakCardState extends State<StreakCard> {
                           backgroundColor:
                               MaterialStateProperty.all<Color>(pink)),
                       onPressed: () => onOpenSongTapped(context),
-                      child: const Text("Open song",
-                          style: TextStyle(fontSize: 19.0)),
+                      child:
+                          Text("Open song", style: TextStyle(fontSize: 19.0)),
                     ),
                     TextButton(
                       style: addFriendButtonStyle,

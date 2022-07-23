@@ -104,10 +104,14 @@ TextStyle welcomeTextStyle = const TextStyle(
       )
     ]);
 
-TextStyle songInfoTextStyle = const TextStyle(
+TextStyle songInfoTextStyleSmall = const TextStyle(
   color: darkGray,
   // fontFamily: 'ProximaSans',
   fontSize: 11.0,
+);
+TextStyle songInfoTextStyleBig = const TextStyle(
+  color: Colors.white,
+  fontSize: 17.0,
 );
 
 ButtonStyle addFriendButtonStyle = ButtonStyle(
@@ -135,3 +139,4 @@ const teal = Color(0xff2bd4b2);
 const pink = Color.fromRGBO(224, 8, 130, 1);
 const spotifyGreen = Color.fromRGBO(28, 215, 96, 1);
 const darkGray = Color.fromRGBO(30, 30, 30, 1);
+const spotifyBlack = Color.fromRGBO(25, 20, 20, 1);

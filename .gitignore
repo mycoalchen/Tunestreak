@@ -63,3 +63,5 @@ node_server/node_modules
 .env
 
 config.dart
+
+testImage.jpeg
