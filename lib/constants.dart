@@ -62,6 +62,24 @@ const connectButtonTextStyle = TextStyle(
   fontFamily: 'Roboto',
 );
 
+final openInSpotifyButtonStyle = ButtonStyle(
+  backgroundColor: MaterialStateProperty.all(Colors.black),
+  overlayColor: MaterialStateColor.resolveWith((states) => Colors.white),
+  shape:
+      MaterialStateProperty.all<RoundedRectangleBorder>(RoundedRectangleBorder(
+    side: const BorderSide(
+        color: spotifyGreen, width: 3, style: BorderStyle.solid),
+    borderRadius: BorderRadius.circular(10.0),
+  )),
+  // Shadow shadowColor: MaterialStateProperty.all(Color(0xffFFFC00)),
+  // Spotify shadowColor: MaterialStateProperty.all(Color(0xff1DB954)),
+);
+
+const openInSpotifyTextStyle = TextStyle(
+  color: spotifyGreen,
+  fontSize: 14.0,
+);
+
 const circleInkwellBoxDecoration = BoxDecoration(
   color: circleColor,
   shape: BoxShape.circle,

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:spotify/spotify.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:tunestreak/send_song.dart';
+import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/src/widgets/image.dart'
     as fImage; // Flutter-defined Image; prevent conflict with Spotify-defined image
 import 'user_provider.dart';
@@ -76,11 +77,13 @@ class StreakCard extends StatefulWidget {
   State<StreakCard> createState() => _StreakCardState();
 }
 
-class _StreakCardState extends State<StreakCard> {
+class _StreakCardState extends State<StreakCard>
+    with SingleTickerProviderStateMixin {
   // whether showSongsToSend is still being run
   bool isLoading = false;
   String streak = "...";
   bool pressed = false;
+  AudioPlayer audioPlayer = AudioPlayer();
 
   void onSendSongTapped(context) {
     Map<TsUser, bool> sendTo = {};
@@ -128,9 +131,9 @@ class _StreakCardState extends State<StreakCard> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
-                          padding: EdgeInsets.fromLTRB(20, 30, 20, 0),
-                          height: 230,
-                          width: 230,
+                          padding: EdgeInsets.fromLTRB(20, 25, 20, 0),
+                          height: 200,
+                          width: 200,
                           child: FittedBox(
                             fit: BoxFit.fill,
                             child: fImage.Image.asset('assets/testImage.jpeg'),
@@ -149,6 +152,82 @@ class _StreakCardState extends State<StreakCard> {
                         child: Text("Artist name: Troll",
                             style: songInfoTextStyleBig),
                       ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
+                        child: ProgressBar(
+                          progress: Duration(milliseconds: 0),
+                          total: Duration(milliseconds: 8000),
+                          progressBarColor: Colors.white,
+                          baseBarColor: Color.fromRGBO(92, 92, 92, 1),
+                          barHeight: 3.0,
+                          timeLabelTextStyle: const TextStyle(fontSize: 0),
+                          thumbRadius: 0,
+                        ),
+                      ),
+                      Padding(
+                          padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
+                          child: RawMaterialButton(
+                              constraints:
+                                  BoxConstraints.tight(const Size(60, 60)),
+                              onPressed: () {},
+                              elevation: 2.0,
+                              fillColor: Colors.white,
+                              shape: const CircleBorder(),
+                              child: Icon(
+                                Icons.pause,
+                                size: 40,
+                                color: Colors.black,
+                              ))),
+                      Padding(
+                          padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
+                          child: Container(
+                            padding: const EdgeInsets.all(2.5),
+                            height: 50,
+                            width: 230,
+                            child: OutlinedButton(
+                              onPressed: () => {},
+                              style: openInSpotifyButtonStyle,
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    fImage.Image.asset(
+                                        'assets/icons/Spotify.png',
+                                        fit: BoxFit.contain,
+                                        height: 27),
+                                    const SizedBox(width: 12),
+                                    const Text(
+                                      "Open in Spotify",
+                                      style: openInSpotifyTextStyle,
+                                    ),
+                                  ]),
+                            ),
+                          )),
+                      Padding(
+                          padding: const EdgeInsets.fromLTRB(40, 5, 40, 0),
+                          child: Container(
+                            padding: const EdgeInsets.all(2.5),
+                            height: 50,
+                            width: 230,
+                            child: OutlinedButton(
+                              onPressed: () => {},
+                              style: openInSpotifyButtonStyle,
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    fImage.Image.asset(
+                                        'assets/icons/Spotify.png',
+                                        fit: BoxFit.contain,
+                                        height: 27),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      // Add to {first name} moments
+                                      // ${widget.friend.name.split(' ').first}
+                                      "Add to moments",
+                                      style: openInSpotifyTextStyle,
+                                    ),
+                                  ]),
+                            ),
+                          )),
                     ]));
           });
         });
@@ -183,15 +262,16 @@ class _StreakCardState extends State<StreakCard> {
       });
       // TODO: Move open Spotify popup here
       // Play the song
-      AudioPlayer audioPlayer = AudioPlayer();
       Track track = await Provider.of<UserProvider>(context, listen: false)
           .spotify
           .tracks
           .get(songs[0]);
       if (track.previewUrl != null) {
-        audioPlayer.pause();
-        await audioPlayer.setUrl(track.previewUrl!);
-        audioPlayer.play();
+        setState(() async {
+          audioPlayer.pause();
+          await audioPlayer.setUrl(track.previewUrl!);
+          audioPlayer.play();
+        });
       } else {
         print("ERROR: PREVIEW NULL");
       }
