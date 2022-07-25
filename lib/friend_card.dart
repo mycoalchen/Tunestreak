@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:spotify/spotify.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:tunestreak/send_song.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/src/widgets/image.dart'
@@ -83,7 +84,8 @@ class _StreakCardState extends State<StreakCard>
   bool isLoading = false;
   String streak = "...";
   bool pressed = false;
-  AudioPlayer audioPlayer = AudioPlayer();
+  late AudioPlayer audioPlayer;
+  late Stream<DurationState> durationState;
 
   void onSendSongTapped(context) {
     Map<TsUser, bool> sendTo = {};
@@ -117,120 +119,6 @@ class _StreakCardState extends State<StreakCard>
   }
 
   void onOpenSongTapped(context) async {
-    // Open a Spotify popup
-    showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (context) {
-          return StatefulBuilder(
-              builder: (BuildContext context, StateSetter setModalState) {
-            return Container(
-                height: 600,
-                decoration: const BoxDecoration(color: spotifyBlack),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                          padding: EdgeInsets.fromLTRB(20, 25, 20, 0),
-                          height: 200,
-                          width: 200,
-                          child: FittedBox(
-                            fit: BoxFit.fill,
-                            child: fImage.Image.asset('assets/testImage.jpeg'),
-                          )),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                        child: Text("Troll Song", style: songInfoTextStyleBig),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 2.5, 20, 0),
-                        child: Text("Album name: Troll",
-                            style: songInfoTextStyleBig),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 2.5, 20, 0),
-                        child: Text("Artist name: Troll",
-                            style: songInfoTextStyleBig),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
-                        child: ProgressBar(
-                          progress: Duration(milliseconds: 0),
-                          total: Duration(milliseconds: 8000),
-                          progressBarColor: Colors.white,
-                          baseBarColor: Color.fromRGBO(92, 92, 92, 1),
-                          barHeight: 3.0,
-                          timeLabelTextStyle: const TextStyle(fontSize: 0),
-                          thumbRadius: 0,
-                        ),
-                      ),
-                      Padding(
-                          padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
-                          child: RawMaterialButton(
-                              constraints:
-                                  BoxConstraints.tight(const Size(60, 60)),
-                              onPressed: () {},
-                              elevation: 2.0,
-                              fillColor: Colors.white,
-                              shape: const CircleBorder(),
-                              child: Icon(
-                                Icons.pause,
-                                size: 40,
-                                color: Colors.black,
-                              ))),
-                      Padding(
-                          padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
-                          child: Container(
-                            padding: const EdgeInsets.all(2.5),
-                            height: 50,
-                            width: 230,
-                            child: OutlinedButton(
-                              onPressed: () => {},
-                              style: openInSpotifyButtonStyle,
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    fImage.Image.asset(
-                                        'assets/icons/Spotify.png',
-                                        fit: BoxFit.contain,
-                                        height: 27),
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      "Open in Spotify",
-                                      style: openInSpotifyTextStyle,
-                                    ),
-                                  ]),
-                            ),
-                          )),
-                      Padding(
-                          padding: const EdgeInsets.fromLTRB(40, 5, 40, 0),
-                          child: Container(
-                            padding: const EdgeInsets.all(2.5),
-                            height: 50,
-                            width: 230,
-                            child: OutlinedButton(
-                              onPressed: () => {},
-                              style: openInSpotifyButtonStyle,
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    fImage.Image.asset(
-                                        'assets/icons/Spotify.png',
-                                        fit: BoxFit.contain,
-                                        height: 27),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      // Add to {first name} moments
-                                      // ${widget.friend.name.split(' ').first}
-                                      "Add to moments",
-                                      style: openInSpotifyTextStyle,
-                                    ),
-                                  ]),
-                            ),
-                          )),
-                    ]));
-          });
-        });
     final friendsCollection = widget.firestore
         .collection("users")
         .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
@@ -260,21 +148,191 @@ class _StreakCardState extends State<StreakCard>
         // Update the streak
         "streak": FieldValue.increment(1),
       });
-      // TODO: Move open Spotify popup here
       // Play the song
       Track track = await Provider.of<UserProvider>(context, listen: false)
           .spotify
           .tracks
           .get(songs[0]);
       if (track.previewUrl != null) {
-        setState(() async {
-          audioPlayer.pause();
-          await audioPlayer.setUrl(track.previewUrl!);
-          audioPlayer.play();
-        });
+        audioPlayer.pause();
+        await audioPlayer.setUrl(track.previewUrl!);
+        await audioPlayer.setClip(end: Duration(seconds: 8));
+        audioPlayer.play();
       } else {
         print("ERROR: PREVIEW NULL");
       }
+      // Open a Spotify popup
+      showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) {
+            return StatefulBuilder(
+                builder: (BuildContext context, StateSetter setModalState) {
+              return Container(
+                  height: 600,
+                  decoration: const BoxDecoration(color: spotifyBlack),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                            padding: EdgeInsets.fromLTRB(20, 35, 20, 0),
+                            height: 200,
+                            width: 200,
+                            child: FittedBox(
+                              fit: BoxFit.fill,
+                              child: fImage.Image.network(
+                                  track.album!.images![0].url!),
+                            )),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                          child: Text(clipString(track.name!, 23),
+                              style: songInfoTextStyleBig),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 2.5, 20, 0),
+                          child: Text(clipString(track.album!.name!, 25),
+                              style: songInfoTextStyleBig),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 2.5, 20, 0),
+                          child: Text(clipString(track.artists![0].name!, 18),
+                              style: songInfoTextStyleBig),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
+                          child: StreamBuilder<DurationState>(
+                              stream: durationState,
+                              builder: (context, snapshot) {
+                                final durationState = snapshot.data;
+                                final progress =
+                                    durationState?.progress ?? Duration.zero;
+                                return ProgressBar(
+                                  progress: progress,
+                                  total: Duration(milliseconds: 8000),
+                                  progressBarColor: Colors.white,
+                                  baseBarColor: Color.fromRGBO(92, 92, 92, 1),
+                                  barHeight: 3.0,
+                                  timeLabelTextStyle:
+                                      const TextStyle(fontSize: 0),
+                                  thumbRadius: 0,
+                                );
+                              }),
+                        ),
+                        Padding(
+                            padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
+                            child: StreamBuilder<PlayerState>(
+                                stream: audioPlayer.playerStateStream,
+                                builder: (context, snapshot) {
+                                  final playerState = snapshot.data;
+                                  final playing = playerState?.playing;
+                                  final processingState =
+                                      playerState?.processingState;
+                                  if (processingState ==
+                                          ProcessingState.loading ||
+                                      processingState ==
+                                          ProcessingState.buffering) {
+                                    return Container(
+                                      padding: const EdgeInsets.all(20),
+                                      width: 60,
+                                      height: 60,
+                                      child: const CircularProgressIndicator(),
+                                    );
+                                  } else if (playing != true) {
+                                    return RawMaterialButton(
+                                        constraints: BoxConstraints.tight(
+                                            const Size(60, 60)),
+                                        onPressed: audioPlayer.play,
+                                        elevation: 2.0,
+                                        fillColor: Colors.white,
+                                        shape: const CircleBorder(),
+                                        child: const Icon(
+                                          Icons.play_arrow,
+                                          size: 40,
+                                          color: Colors.black,
+                                        ));
+                                  } else if (processingState !=
+                                      ProcessingState.completed) {
+                                    return RawMaterialButton(
+                                        constraints: BoxConstraints.tight(
+                                            const Size(60, 60)),
+                                        onPressed: audioPlayer.pause,
+                                        elevation: 2.0,
+                                        fillColor: Colors.white,
+                                        shape: const CircleBorder(),
+                                        child: const Icon(
+                                          Icons.pause,
+                                          size: 40,
+                                          color: Colors.black,
+                                        ));
+                                  } else {
+                                    return RawMaterialButton(
+                                        constraints: BoxConstraints.tight(
+                                            const Size(60, 60)),
+                                        onPressed: () =>
+                                            audioPlayer.seek(Duration.zero),
+                                        elevation: 2.0,
+                                        fillColor: Colors.white,
+                                        shape: const CircleBorder(),
+                                        child: const Icon(
+                                          Icons.replay,
+                                          size: 40,
+                                          color: Colors.black,
+                                        ));
+                                  }
+                                })),
+                        Padding(
+                            padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
+                            child: Container(
+                              padding: const EdgeInsets.all(2.5),
+                              height: 50,
+                              width: 230,
+                              child: OutlinedButton(
+                                onPressed: () => {},
+                                style: openInSpotifyButtonStyle,
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      fImage.Image.asset(
+                                          'assets/icons/Spotify.png',
+                                          fit: BoxFit.contain,
+                                          height: 27),
+                                      const SizedBox(width: 12),
+                                      const Text(
+                                        "Open in Spotify",
+                                        style: openInSpotifyTextStyle,
+                                      ),
+                                    ]),
+                              ),
+                            )),
+                        Padding(
+                            padding: const EdgeInsets.fromLTRB(40, 5, 40, 0),
+                            child: Container(
+                              padding: const EdgeInsets.all(2.5),
+                              height: 50,
+                              width: 230,
+                              child: OutlinedButton(
+                                onPressed: () => {},
+                                style: openInSpotifyButtonStyle,
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      fImage.Image.asset(
+                                          'assets/icons/Spotify.png',
+                                          fit: BoxFit.contain,
+                                          height: 27),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        // Add to {first name} moments
+                                        // ${widget.friend.name.split(' ').first}
+                                        "Add to moments",
+                                        style: openInSpotifyTextStyle,
+                                      ),
+                                    ]),
+                              ),
+                            )),
+                      ]));
+            });
+          });
     });
     // Update the streak in the friend's doc of this user
     // Get the id of this user's doc in the friend's friends collection
@@ -300,6 +358,14 @@ class _StreakCardState extends State<StreakCard>
   void initState() {
     super.initState();
     setStreak(context);
+    audioPlayer = AudioPlayer();
+    durationState = Rx.combineLatest2<Duration, PlaybackEvent, DurationState>(
+        audioPlayer.positionStream,
+        audioPlayer.playbackEventStream,
+        (position, playbackEvent) => DurationState(
+              progress: position,
+              total: playbackEvent.duration,
+            ));
   }
 
   @override

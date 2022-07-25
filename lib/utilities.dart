@@ -24,3 +24,13 @@ class TsUser {
   @override
   int get hashCode => hash3(name, username, fbDocId);
 }
+
+// Represents state of song playback controller
+class DurationState {
+  const DurationState({
+    required this.progress,
+    this.total,
+  });
+  final Duration progress;
+  final Duration? total;
+}

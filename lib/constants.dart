@@ -71,8 +71,6 @@ final openInSpotifyButtonStyle = ButtonStyle(
         color: spotifyGreen, width: 3, style: BorderStyle.solid),
     borderRadius: BorderRadius.circular(10.0),
   )),
-  // Shadow shadowColor: MaterialStateProperty.all(Color(0xffFFFC00)),
-  // Spotify shadowColor: MaterialStateProperty.all(Color(0xff1DB954)),
 );
 
 const openInSpotifyTextStyle = TextStyle(
