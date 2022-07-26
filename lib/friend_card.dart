@@ -5,6 +5,7 @@ import 'package:spotify/spotify.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tunestreak/send_song.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/src/widgets/image.dart'
     as fImage; // Flutter-defined Image; prevent conflict with Spotify-defined image
@@ -287,7 +288,12 @@ class _StreakCardState extends State<StreakCard>
                               height: 50,
                               width: 230,
                               child: OutlinedButton(
-                                onPressed: () => {},
+                                onPressed: () async {
+                                  final Uri uri = Uri.parse(track.uri!);
+                                  if (!await launchUrl(uri)) {
+                                    throw "Could not launch #uri";
+                                  }
+                                },
                                 style: openInSpotifyButtonStyle,
                                 child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
