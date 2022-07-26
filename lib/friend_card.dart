@@ -87,6 +87,9 @@ class _StreakCardState extends State<StreakCard>
   bool pressed = false;
   late AudioPlayer audioPlayer;
   late Stream<DurationState> durationState;
+  Color openSongButtonColor = Colors.white;
+  Color openSongOverlayColor =
+      Colors.white; // Splash color of "open song" button
 
   void onSendSongTapped(context) {
     Map<TsUser, bool> sendTo = {};
@@ -360,6 +363,25 @@ class _StreakCardState extends State<StreakCard>
     });
   }
 
+  // Return an invisible white button style if no songs to open; else return pink background
+  Future<void> setOpenSongButtonColor() async {
+    // Check if the sentSongs array in this friend's doc in this user's friends collection is empty
+    await widget.firestore
+        .collection("users")
+        .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
+        .collection("friends")
+        .where("fbDocId", isEqualTo: widget.friend.fbDocId)
+        .get()
+        .then((res) {
+      if (List.from(res.docs[0].get("sentSongs")).isNotEmpty) {
+        setState(() {
+          openSongButtonColor = pink;
+          openSongOverlayColor = darkPink;
+        });
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -372,6 +394,8 @@ class _StreakCardState extends State<StreakCard>
               progress: position,
               total: playbackEvent.duration,
             ));
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => setOpenSongButtonColor());
   }
 
   @override
@@ -391,7 +415,7 @@ class _StreakCardState extends State<StreakCard>
                         style: TextStyle(fontSize: 18.0)),
                     Text(streak, style: TextStyle(fontSize: 18.0)),
                   ]),
-              Container(
+              Padding(
                 padding: EdgeInsets.only(top: 5.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,8 +423,10 @@ class _StreakCardState extends State<StreakCard>
                   children: [
                     TextButton(
                       style: addFriendButtonStyle.copyWith(
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(pink)),
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              openSongButtonColor),
+                          overlayColor: MaterialStateProperty.all<Color>(
+                              openSongOverlayColor)),
                       onPressed: () => onOpenSongTapped(context),
                       child:
                           Text("Open song", style: TextStyle(fontSize: 19.0)),
@@ -413,7 +439,19 @@ class _StreakCardState extends State<StreakCard>
                     )
                   ],
                 ),
-              )
+              ),
+
+              // TODO: Add this in when implementing moments
+              // Row(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     mainAxisAlignment: MainAxisAlignment.center,
+              //     children: [
+              //       TextButton(
+              //           style: openMomentsButtonStyle,
+              //           onPressed: () {},
+              //           child: Text("Open moments",
+              //               style: const TextStyle(fontSize: 19.0))),
+              //     ])
             ]));
   }
 }

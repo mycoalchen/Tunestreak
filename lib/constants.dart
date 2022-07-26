@@ -132,7 +132,16 @@ TextStyle songInfoTextStyleBig = const TextStyle(
 
 ButtonStyle addFriendButtonStyle = ButtonStyle(
     backgroundColor: MaterialStateProperty.all<Color>(teal),
+    overlayColor: MaterialStateProperty.all<Color>(darkTeal),
     foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20.0),
+    )));
+
+ButtonStyle openMomentsButtonStyle = ButtonStyle(
+    backgroundColor: MaterialStateProperty.all<Color>(spotifyGreen),
+    foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
         RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(20.0),
@@ -152,7 +161,9 @@ BoxDecoration sendToCardDecoration = const BoxDecoration(
 
 const circleColor = Color.fromRGBO(210, 210, 210, 1);
 const teal = Color(0xff2bd4b2);
+const darkTeal = Color.fromARGB(255, 27, 121, 102);
 const pink = Color.fromRGBO(224, 8, 130, 1);
+const darkPink = Color.fromARGB(255, 123, 4, 62);
 const spotifyGreen = Color.fromRGBO(28, 215, 96, 1);
 const darkGray = Color.fromRGBO(30, 30, 30, 1);
 const spotifyBlack = Color.fromRGBO(25, 20, 20, 1);
