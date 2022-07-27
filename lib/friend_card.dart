@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
@@ -90,6 +92,57 @@ class _StreakCardState extends State<StreakCard>
   Color openSongButtonColor = Colors.white;
   Color openSongOverlayColor =
       Colors.white; // Splash color of "open song" button
+  int previewLengthSeconds = 30;
+  int minStreakLengthSeconds =
+      8; // number of seconds that must be listened-to before streak increases
+  late Timer streakTimer;
+
+  // Called when song has been open for minStreakLength seconds
+  Future<void> onStreakTimerFinished() async {
+    // First update the streak in this user's doc of the friend
+    final friendsCollection = widget.firestore
+        .collection("users")
+        .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
+        .collection("friends");
+    String friendDocId = "";
+    // Get the id of the friend's doc in the user's friend collection
+    await friendsCollection
+        .where("fbDocId", isEqualTo: widget.friend.fbDocId)
+        .get()
+        .then((QuerySnapshot res) async {
+      if (!hasOneDoc(res, "friend_card line 113")) {
+        return;
+      }
+      friendDocId = res.docs[0].id;
+    });
+    // Increment the streak
+    await friendsCollection.doc(friendDocId).get().then((value) async {
+      await friendsCollection.doc(friendDocId).update({
+        "streak": FieldValue.increment(1),
+      });
+    });
+    // Update the streak in the friend's doc of this user
+    // Get the id of this user's doc in the friend's friends collection
+    await widget.firestore
+        .collection("users")
+        .doc(widget.friend.fbDocId)
+        .collection("friends")
+        .where("fbDocId",
+            isEqualTo:
+                Provider.of<UserProvider>(context, listen: false).fbDocId)
+        .get()
+        .then((res) async {
+      await widget.firestore
+          .collection("users")
+          .doc(widget.friend.fbDocId)
+          .collection("friends")
+          .doc(res.docs[0].id)
+          .update({"streak": FieldValue.increment(1)});
+    });
+    // Update the streak count displayed
+    if (!mounted) return;
+    setStreak(context);
+  }
 
   void onSendSongTapped(context) {
     Map<TsUser, bool> sendTo = {};
@@ -133,14 +186,7 @@ class _StreakCardState extends State<StreakCard>
         .where("fbDocId", isEqualTo: widget.friend.fbDocId)
         .get()
         .then((QuerySnapshot res) async {
-      if (res.docs.isEmpty) {
-        print(
-            "ERROR: Tried to open song from nonexistent user - friend_card.dart line 112");
-        return;
-      }
-      if (res.docs.length > 1) {
-        print(
-            "ERROR: More than one friends have same firebase doc id - friend_card.dart line 117");
+      if (!hasOneDoc(res, "friend_card line 136")) {
         return;
       }
       friendDocId = res.docs[0].id;
@@ -148,9 +194,7 @@ class _StreakCardState extends State<StreakCard>
     await friendsCollection.doc(friendDocId).get().then((value) async {
       List<String> songs = List.from(value.get("sentSongs"));
       await friendsCollection.doc(friendDocId).update({
-        "sentSongs": FieldValue.arrayRemove([songs[0]]),
-        // Update the streak
-        "streak": FieldValue.increment(1),
+        "sentSongs": FieldValue.arrayRemove([songs[0]])
       });
       // Play the song
       Track track = await Provider.of<UserProvider>(context, listen: false)
@@ -160,8 +204,9 @@ class _StreakCardState extends State<StreakCard>
       if (track.previewUrl != null) {
         audioPlayer.pause();
         await audioPlayer.setUrl(track.previewUrl!);
-        await audioPlayer.setClip(end: Duration(seconds: 8));
         audioPlayer.play();
+        streakTimer = Timer(
+            Duration(seconds: minStreakLengthSeconds), onStreakTimerFinished);
       } else {
         print("ERROR: PREVIEW NULL");
       }
@@ -212,18 +257,22 @@ class _StreakCardState extends State<StreakCard>
                                     durationState?.progress ?? Duration.zero;
                                 return ProgressBar(
                                   progress: progress,
-                                  total: Duration(milliseconds: 8000),
+                                  buffered:
+                                      Duration(seconds: minStreakLengthSeconds),
+                                  total:
+                                      Duration(seconds: previewLengthSeconds),
                                   progressBarColor: Colors.white,
                                   baseBarColor: Color.fromRGBO(92, 92, 92, 1),
+                                  bufferedBarColor: teal,
                                   barHeight: 3.0,
-                                  timeLabelTextStyle:
-                                      const TextStyle(fontSize: 0),
+                                  timeLabelTextStyle: songInfoTextStyleSmall
+                                      .copyWith(color: Colors.white),
                                   thumbRadius: 0,
                                 );
                               }),
                         ),
                         Padding(
-                            padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
+                            padding: const EdgeInsets.fromLTRB(40, 27, 40, 0),
                             child: StreamBuilder<PlayerState>(
                                 stream: audioPlayer.playerStateStream,
                                 builder: (context, snapshot) {
@@ -285,11 +334,11 @@ class _StreakCardState extends State<StreakCard>
                                   }
                                 })),
                         Padding(
-                            padding: const EdgeInsets.fromLTRB(40, 20, 40, 0),
+                            padding: const EdgeInsets.fromLTRB(40, 27, 40, 0),
                             child: Container(
                               padding: const EdgeInsets.all(2.5),
-                              height: 50,
-                              width: 230,
+                              height: 70,
+                              width: 250,
                               child: OutlinedButton(
                                 onPressed: () async {
                                   final Uri uri = Uri.parse(track.uri!);
@@ -313,53 +362,39 @@ class _StreakCardState extends State<StreakCard>
                                     ]),
                               ),
                             )),
-                        Padding(
-                            padding: const EdgeInsets.fromLTRB(40, 5, 40, 0),
-                            child: Container(
-                              padding: const EdgeInsets.all(2.5),
-                              height: 50,
-                              width: 230,
-                              child: OutlinedButton(
-                                onPressed: () => {},
-                                style: openInSpotifyButtonStyle,
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      fImage.Image.asset(
-                                          'assets/icons/Spotify.png',
-                                          fit: BoxFit.contain,
-                                          height: 27),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        // Add to {first name} moments
-                                        // ${widget.friend.name.split(' ').first}
-                                        "Add to moments",
-                                        style: openInSpotifyTextStyle,
-                                      ),
-                                    ]),
-                              ),
-                            )),
+                        // Padding(
+                        //     padding: const EdgeInsets.fromLTRB(40, 5, 40, 0),
+                        //     child: Container(
+                        //       padding: const EdgeInsets.all(2.5),
+                        //       height: 50,
+                        //       width: 230,
+                        //       child: OutlinedButton(
+                        //         onPressed: () => {},
+                        //         style: openInSpotifyButtonStyle,
+                        //         child: Row(
+                        //             mainAxisAlignment: MainAxisAlignment.center,
+                        //             children: [
+                        //               fImage.Image.asset(
+                        //                   'assets/icons/Spotify.png',
+                        //                   fit: BoxFit.contain,
+                        //                   height: 27),
+                        //               const SizedBox(width: 12),
+                        //               Text(
+                        //                 // Add to {first name} moments
+                        //                 // ${widget.friend.name.split(' ').first}
+                        //                 "Add to moments",
+                        //                 style: openInSpotifyTextStyle,
+                        //               ),
+                        //             ]),
+                        //       ),
+                        //     )),
                       ]));
             });
-          });
-    });
-    // Update the streak in the friend's doc of this user
-    // Get the id of this user's doc in the friend's friends collection
-    await widget.firestore
-        .collection("users")
-        .doc(widget.friend.fbDocId)
-        .collection("friends")
-        .where("fbDocId",
-            isEqualTo:
-                Provider.of<UserProvider>(context, listen: false).fbDocId)
-        .get()
-        .then((res) async {
-      await widget.firestore
-          .collection("users")
-          .doc(widget.friend.fbDocId)
-          .collection("friends")
-          .doc(res.docs[0].id)
-          .update({"streak": FieldValue.increment(1)});
+          }).whenComplete(() {
+        setOpenSongButtonColor();
+        setStreak(context);
+        audioPlayer.pause();
+      });
     });
   }
 
@@ -377,6 +412,11 @@ class _StreakCardState extends State<StreakCard>
         setState(() {
           openSongButtonColor = pink;
           openSongOverlayColor = darkPink;
+        });
+      } else {
+        setState(() {
+          openSongButtonColor = Colors.white;
+          openSongOverlayColor = Colors.white;
         });
       }
     });

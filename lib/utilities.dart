@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:quiver/core.dart';
 
 // clips a string to length with "..." at the end if clipped
@@ -33,4 +34,17 @@ class DurationState {
   });
   final Duration progress;
   final Duration? total;
+}
+
+// Check that QuerySnapshot only contains 1 doc
+bool hasOneDoc(QuerySnapshot res, String line) {
+  if (res.docs.isEmpty) {
+    print("ERROR: QuerySnapshot empty - $line");
+    return false;
+  }
+  if (res.docs.length > 1) {
+    print("ERROR: QuerySnapshot has more than 1 document - $line");
+    return false;
+  }
+  return true;
 }
