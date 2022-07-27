@@ -19,11 +19,13 @@ class SendSongPage extends StatefulWidget {
 
 class SendSongPageState extends State<SendSongPage> {
   late List<TsUser> friendsList;
+  int songsToLoad = 8;
   int songsLoaded = 0;
   List<bool> currentlyPlaying = List<bool>.filled(8, false);
   List<Track> recentlyPlayed = List<Track>.empty(growable: true);
   static AudioPlayer audioPlayer = AudioPlayer();
   FirebaseFirestore firestore = FirebaseFirestore.instance;
+  List<String> previewUrls = List<String>.empty(growable: true);
 
   // Return either a play or pause icon
   IconData playPause(int index) {
@@ -46,14 +48,10 @@ class SendSongPageState extends State<SendSongPage> {
           .spotify
           .tracks
           .get(trackId);
-      if (track.previewUrl != null) {
-        setState(() => currentlyPlaying[trackIndex] = true);
-        audioPlayer.pause();
-        await audioPlayer.setUrl(track.previewUrl!);
-        audioPlayer.play();
-      } else {
-        print("ERROR: PREVIEW NULL");
-      }
+      setState(() => currentlyPlaying[trackIndex] = true);
+      audioPlayer.pause();
+      await audioPlayer.setUrl(previewUrls[trackIndex]);
+      audioPlayer.play();
     } else {
       audioPlayer.pause();
       setState(() {
@@ -66,15 +64,23 @@ class SendSongPageState extends State<SendSongPage> {
   Future<void> loadSongs() async {
     // Get recently played songs from Spotify API
     List<Track> songs = List<Track>.empty(growable: true);
+    List<String> preUrls = List<String>.empty(growable: true);
     UserProvider up = Provider.of<UserProvider>(context, listen: false);
-    await up.spotify.me.recentlyPlayed(limit: 8).then((value) async {
+    await up.spotify.me.recentlyPlayed(limit: songsToLoad).then((value) async {
       List<PlayHistory> songList = value.toList();
       for (int i = 0; i < songList.length; i++) {
         Track track = await up.spotify.tracks.get(songList[i].track!.id!);
         songs.add(track);
         if (!mounted) return;
+        // Get preview url - if none, it will not be rendered
+        if (track.previewUrl != null) {
+          preUrls.add(track.previewUrl!);
+        } else {
+          preUrls.add("");
+        }
         setState(() {
           recentlyPlayed = songs;
+          previewUrls = preUrls;
           songsLoaded += 1;
         });
       }
@@ -233,6 +239,10 @@ class SendSongPageState extends State<SendSongPage> {
             shrinkWrap: true,
             itemCount: friendsList.length,
             itemBuilder: (BuildContext context, int index) {
+              // Do not display if it doesn't have a preview url or if preview url hasn't been loaded
+              if (previewUrls.length <= index || previewUrls[index] == "") {
+                return Container();
+              }
               return Container(
                   padding: EdgeInsets.fromLTRB(30, 5, 30, 5),
                   decoration: sendToCardDecoration,

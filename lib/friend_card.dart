@@ -414,6 +414,7 @@ class _StreakCardState extends State<StreakCard>
           openSongOverlayColor = darkPink;
         });
       } else {
+        if (!mounted) return;
         setState(() {
           openSongButtonColor = Colors.white;
           openSongOverlayColor = Colors.white;
