@@ -26,6 +26,37 @@ class _MomentsState extends State<Moments> {
       appBar: HomeAppBar(
         title: widget.name + " Moments",
       ),
+      bottomNavigationBar: Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: Material(
+                  color: teal,
+                  child: InkWell(
+                      onTap: () => Navigator.pop(context),
+                      splashColor: darkTeal,
+                      child: SizedBox(
+                          height: 90,
+                          child: Center(
+                              child: Text('Back',
+                                  textAlign: TextAlign.center,
+                                  style: songInfoTextStyleBig))))),
+            ),
+            Expanded(
+                child: Material(
+                    color: spotifyGreen,
+                    child: InkWell(
+                        onTap: () => {},
+                        splashColor: darkGreen,
+                        child: SizedBox(
+                            height: 90,
+                            child: Center(
+                                child: Text('Save to Spotify',
+                                    textAlign: TextAlign.center,
+                                    style: songInfoTextStyleBig.copyWith(
+                                        color: Colors.black))))))),
+          ]),
     );
   }
 }

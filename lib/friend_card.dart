@@ -27,7 +27,8 @@ class AddFriendCard extends StatefulWidget {
 
 class _AddFriendCardState extends State<AddFriendCard> {
   Future<void> onAddFriendTapped() async {
-    final moments = await widget.firestore.collection("moments").add({});
+    final moments =
+        await widget.firestore.collection("moments").add({"songs": []});
     widget.firestore
         .collection("users")
         .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
@@ -103,6 +104,8 @@ class _StreakCardState extends State<StreakCard>
   int minStreakLengthSeconds =
       8; // number of seconds that must be listened-to before streak increases
   late Timer streakTimer;
+  // id of the Firebase doc containing the moments of this user and the friend
+  String momentsId = "";
 
   // Called when song has been open for minStreakLength seconds
   Future<void> onStreakTimerFinished() async {
@@ -149,6 +152,28 @@ class _StreakCardState extends State<StreakCard>
     // Update the streak count displayed
     if (!mounted) return;
     setStreak(context);
+  }
+
+  Future<void> saveToMoments(Track track, BuildContext context) async {
+    String friendDocId = await getFriendDoc(
+        Provider.of<UserProvider>(context, listen: false).fbDocId,
+        widget.friend.fbDocId);
+    print(friendDocId);
+    // Set momentsId
+    if (momentsId == "") {
+      await widget.firestore
+          .collection("users")
+          .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
+          .collection("friends")
+          .doc(friendDocId)
+          .get()
+          .then((doc) async {
+        setState(() => momentsId = doc.get("moments"));
+      });
+    }
+    await widget.firestore.collection("moments").doc(momentsId).update({
+      "songs": FieldValue.arrayUnion([track.id])
+    });
   }
 
   void onSendSongTapped(context) {
@@ -344,8 +369,8 @@ class _StreakCardState extends State<StreakCard>
                             padding: const EdgeInsets.fromLTRB(40, 27, 40, 0),
                             child: Container(
                               padding: const EdgeInsets.all(2.5),
-                              height: 70,
-                              width: 250,
+                              height: 60,
+                              width: 240,
                               child: OutlinedButton(
                                 onPressed: () async {
                                   final Uri uri = Uri.parse(track.uri!);
@@ -369,32 +394,32 @@ class _StreakCardState extends State<StreakCard>
                                     ]),
                               ),
                             )),
-                        // Padding(
-                        //     padding: const EdgeInsets.fromLTRB(40, 5, 40, 0),
-                        //     child: Container(
-                        //       padding: const EdgeInsets.all(2.5),
-                        //       height: 50,
-                        //       width: 230,
-                        //       child: OutlinedButton(
-                        //         onPressed: () => {},
-                        //         style: openInSpotifyButtonStyle,
-                        //         child: Row(
-                        //             mainAxisAlignment: MainAxisAlignment.center,
-                        //             children: [
-                        //               fImage.Image.asset(
-                        //                   'assets/icons/Spotify.png',
-                        //                   fit: BoxFit.contain,
-                        //                   height: 27),
-                        //               const SizedBox(width: 12),
-                        //               Text(
-                        //                 // Add to {first name} moments
-                        //                 // ${widget.friend.name.split(' ').first}
-                        //                 "Add to moments",
-                        //                 style: openInSpotifyTextStyle,
-                        //               ),
-                        //             ]),
-                        //       ),
-                        //     )),
+                        Padding(
+                            padding: const EdgeInsets.fromLTRB(40, 5, 40, 0),
+                            child: Container(
+                              padding: const EdgeInsets.all(2.5),
+                              height: 60,
+                              width: 240,
+                              child: OutlinedButton(
+                                onPressed: () => saveToMoments(track, context),
+                                style: openInSpotifyButtonStyle,
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      fImage.Image.asset(
+                                          'assets/icons/Spotify.png',
+                                          fit: BoxFit.contain,
+                                          height: 27),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        // Add to {first name} moments
+                                        // ${widget.friend.name.split(' ').first}
+                                        "Add to moments",
+                                        style: openInSpotifyTextStyle,
+                                      ),
+                                    ]),
+                              ),
+                            )),
                       ]));
             });
           }).whenComplete(() {
@@ -502,18 +527,6 @@ class _StreakCardState extends State<StreakCard>
                   ],
                 ),
               ),
-
-              // TODO: Add this in when implementing moments
-              // Row(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     mainAxisAlignment: MainAxisAlignment.center,
-              //     children: [
-              //       TextButton(
-              //           style: openMomentsButtonStyle,
-              //           onPressed: () {},
-              //           child: Text("Open moments",
-              //               style: const TextStyle(fontSize: 19.0))),
-              //     ])
             ]));
   }
 }

@@ -36,6 +36,25 @@ class DurationState {
   final Duration? total;
 }
 
+// Get the id of the doc in userId's friend collection with friendId
+Future<String> getFriendDoc(String userId, String friendId) async {
+  String ans = "";
+  await FirebaseFirestore.instance
+      .collection("users")
+      .doc(userId)
+      .collection("friends")
+      .where("fbDocId", isEqualTo: friendId)
+      .get()
+      .then((res) {
+    if (!hasOneDoc(res, "")) {
+      return "";
+    }
+    print("Found friend doc");
+    ans = res.docs[0].id;
+  });
+  return ans;
+}
+
 // Check that QuerySnapshot only contains 1 doc
 bool hasOneDoc(QuerySnapshot res, String line) {
   if (res.docs.isEmpty) {
