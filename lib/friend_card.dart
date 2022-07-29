@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/src/widgets/image.dart'
     as fImage; // Flutter-defined Image; prevent conflict with Spotify-defined image
+import 'moments.dart';
 import 'user_provider.dart';
 import 'utilities.dart';
 import 'constants.dart';
@@ -26,11 +27,17 @@ class AddFriendCard extends StatefulWidget {
 
 class _AddFriendCardState extends State<AddFriendCard> {
   Future<void> onAddFriendTapped() async {
+    final moments = await widget.firestore.collection("moments").add({});
     widget.firestore
         .collection("users")
         .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
         .collection("friends")
-        .add({"fbDocId": widget.user.fbDocId, "streak": 0, 'sentSongs': []});
+        .add({
+      "fbDocId": widget.user.fbDocId,
+      "streak": 0,
+      'sentSongs': [],
+      'moments': moments.id
+    });
     Provider.of<UserProvider>(context, listen: false).addFriend(widget.user);
   }
 
@@ -38,7 +45,7 @@ class _AddFriendCardState extends State<AddFriendCard> {
   Widget build(BuildContext context) {
     return Container(
         padding: EdgeInsets.fromLTRB(30, 10, 30, 10),
-        height: 60,
+        height: 75,
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(
@@ -169,9 +176,9 @@ class _StreakCardState extends State<StreakCard>
 
   String sendSongText() {
     if (isLoading) {
-      return "Loading...";
+      return "...";
     } else {
-      return "Send song";
+      return "Send";
     }
   }
 
@@ -469,14 +476,28 @@ class _StreakCardState extends State<StreakCard>
                           overlayColor: MaterialStateProperty.all<Color>(
                               openSongOverlayColor)),
                       onPressed: () => onOpenSongTapped(context),
-                      child:
-                          Text("Open song", style: TextStyle(fontSize: 19.0)),
+                      child: Text("Open", style: TextStyle(fontSize: 15.0)),
+                    ),
+                    TextButton(
+                      style: addFriendButtonStyle.copyWith(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(teal),
+                          overlayColor:
+                              MaterialStateProperty.all<Color>(darkTeal)),
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => Moments(
+                                    widget.friend.name.split(" ").first)));
+                      },
+                      child: Text("Moments", style: TextStyle(fontSize: 15.0)),
                     ),
                     TextButton(
                       style: addFriendButtonStyle,
                       onPressed: () => onSendSongTapped(context),
                       child: Text(sendSongText(),
-                          style: const TextStyle(fontSize: 19.0)),
+                          style: const TextStyle(fontSize: 15.0)),
                     )
                   ],
                 ),

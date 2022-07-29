@@ -27,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen>
       <BottomNavigationBarItem>[
     const BottomNavigationBarItem(
       icon: Icon(Icons.message),
-      label: 'Streaks',
+      label: 'Friends',
     ),
     const BottomNavigationBarItem(
       icon: Icon(Icons.send),
@@ -54,11 +54,19 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _goForward() {
-    controller.nextPage(duration: pageTurnDuration, curve: pageTurnCurve);
+    if (_selectedIndex != homeNavBarItems.length - 1) {
+      controller.nextPage(duration: pageTurnDuration, curve: pageTurnCurve);
+    } else {
+      controller.jumpToPage(0);
+    }
   }
 
   void _goBack() {
-    controller.previousPage(duration: pageTurnDuration, curve: pageTurnCurve);
+    if (_selectedIndex != 0) {
+      controller.previousPage(duration: pageTurnDuration, curve: pageTurnCurve);
+    } else {
+      controller.jumpToPage(homeNavBarItems.length - 1);
+    }
   }
 
   @override

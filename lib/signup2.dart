@@ -153,7 +153,7 @@ class _Signup2State extends State<Signup2> {
 
   Widget buildSignupBotton() => Container(
         height: 50,
-        width: 150,
+        width: 200,
         child: ElevatedButton(
           onPressed: () => {
             if (_formKey.currentState!.validate()) {handleSignupButtonPress()}
@@ -162,9 +162,11 @@ class _Signup2State extends State<Signup2> {
           child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const <Widget>[
-                Text(
-                  'Continue',
-                  style: connectButtonTextStyle,
+                Expanded(
+                  child: Text(
+                    'Continue',
+                    style: connectButtonTextStyle,
+                  ),
                 ),
               ]),
         ),

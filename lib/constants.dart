@@ -131,8 +131,8 @@ TextStyle songInfoTextStyleBig = const TextStyle(
 );
 
 ButtonStyle addFriendButtonStyle = ButtonStyle(
-    backgroundColor: MaterialStateProperty.all<Color>(teal),
-    overlayColor: MaterialStateProperty.all<Color>(darkTeal),
+    backgroundColor: MaterialStateProperty.all<Color>(spotifyGreen),
+    overlayColor: MaterialStateProperty.all<Color>(darkGreen),
     foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
     shape: MaterialStateProperty.all<RoundedRectangleBorder>(
         RoundedRectangleBorder(
@@ -165,5 +165,6 @@ const darkTeal = Color.fromARGB(255, 27, 121, 102);
 const pink = Color.fromRGBO(224, 8, 130, 1);
 const darkPink = Color.fromARGB(255, 123, 4, 62);
 const spotifyGreen = Color.fromRGBO(28, 215, 96, 1);
+const darkGreen = Color.fromRGBO(26, 143, 69, 1);
 const darkGray = Color.fromRGBO(30, 30, 30, 1);
 const spotifyBlack = Color.fromRGBO(25, 20, 20, 1);

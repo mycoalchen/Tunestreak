@@ -45,11 +45,16 @@ class UserProvider extends ChangeNotifier {
 
   void setFriendsList(List<TsUser> newFriendsList) {
     friendsList = newFriendsList;
+    sendTo.clear();
+    for (TsUser friend in friendsList) {
+      sendTo[friend] = false;
+    }
     notifyListeners();
   }
 
   void addFriend(TsUser newFriend) {
     friendsList.add(newFriend);
+    sendTo[newFriend] = false;
     notifyListeners();
   }
 
