@@ -110,11 +110,12 @@ class _StreakCardState extends State<StreakCard>
   // Called when song has been open for minStreakLength seconds
   Future<void> onStreakTimerFinished() async {
     // First update the streak in this user's doc of the friend
+    String friendDocId = "";
+    if (!mounted) return;
     final friendsCollection = widget.firestore
         .collection("users")
         .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
         .collection("friends");
-    String friendDocId = "";
     // Get the id of the friend's doc in the user's friend collection
     await friendsCollection
         .where("fbDocId", isEqualTo: widget.friend.fbDocId)
@@ -125,6 +126,7 @@ class _StreakCardState extends State<StreakCard>
       }
       friendDocId = res.docs[0].id;
     });
+
     // Increment the streak
     await friendsCollection.doc(friendDocId).get().then((value) async {
       await friendsCollection.doc(friendDocId).update({
@@ -411,9 +413,7 @@ class _StreakCardState extends State<StreakCard>
                                           fit: BoxFit.contain,
                                           height: 27),
                                       const SizedBox(width: 12),
-                                      Text(
-                                        // Add to {first name} moments
-                                        // ${widget.friend.name.split(' ').first}
+                                      const Text(
                                         "Add to moments",
                                         style: openInSpotifyTextStyle,
                                       ),
@@ -466,7 +466,7 @@ class _StreakCardState extends State<StreakCard>
         (position, playbackEvent) => DurationState(
               progress: position,
               total: playbackEvent.duration,
-            ));
+            )).asBroadcastStream();
     WidgetsBinding.instance
         .addPostFrameCallback((_) => setOpenSongButtonColor());
   }
@@ -513,8 +513,7 @@ class _StreakCardState extends State<StreakCard>
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => Moments(
-                                    widget.friend.name.split(" ").first)));
+                                builder: (context) => Moments(widget.friend)));
                       },
                       child: Text("Moments", style: TextStyle(fontSize: 15.0)),
                     ),

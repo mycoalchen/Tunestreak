@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:spotify/spotify.dart';
 import 'package:flutter/src/widgets/image.dart'
     as fImage; // Flutter-defined Image; prevent conflict with Spotify-defined image
+import 'package:tunestreak/song_card.dart';
 import 'add_friends.dart';
 import 'user_provider.dart';
 import 'utilities.dart';
@@ -148,73 +149,8 @@ class SendSongPageState extends State<SendSongPage> {
             itemCount: songsLoaded,
             itemBuilder: (BuildContext context, int index) {
               Track track = recentlyPlayed[index];
-              return Container(
-                decoration: BoxDecoration(color: Colors.white),
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Container(
-                                padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
-                                height: 50,
-                                child: FittedBox(
-                                  fit: BoxFit.fill,
-                                  child: fImage.Image.network(
-                                      track.album!.images![0].url!),
-                                )),
-                            Container(
-                                padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                                height: 70,
-                                child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(clipString(track.name!, 23),
-                                          style: songInfoTextStyleSmall),
-                                      Text(
-                                        clipString(track.artists![0].name!, 18),
-                                        style: songInfoTextStyleSmall,
-                                      )
-                                    ])),
-                          ]),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 0, 5, 0),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              RawMaterialButton(
-                                constraints:
-                                    BoxConstraints.tight(const Size(38, 38)),
-                                onPressed: () =>
-                                    onPlaySongTapped(track.id!, index),
-                                elevation: 2.0,
-                                fillColor: spotifyGreen,
-                                shape: const CircleBorder(),
-                                child: Icon(
-                                  playPause(index),
-                                  size: 26.0,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              RawMaterialButton(
-                                constraints:
-                                    BoxConstraints.tight(const Size(38, 38)),
-                                onPressed: () {
-                                  sendSong(index);
-                                },
-                                elevation: 2.0,
-                                fillColor: teal,
-                                shape: const CircleBorder(),
-                                child: const Icon(Icons.send,
-                                    size: 25.0, color: Colors.black),
-                              ),
-                            ]),
-                      )
-                    ]),
-              );
+              return SongCard(index, track, playPause, onPlaySongTapped, true,
+                  sendSong: sendSong);
             }),
       );
     }
