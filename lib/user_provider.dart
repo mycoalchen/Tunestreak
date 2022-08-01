@@ -1,25 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:spotify/spotify.dart' as spt;
+import 'package:tunestreak/constants.dart';
 import 'dart:math' as math;
 import 'utilities.dart';
 
 class UserProvider extends ChangeNotifier {
-  late spt.SpotifyApi spotify;
-  late spt.UserPublic spotifyUser;
+  late spt.SpotifyApi? spotify;
+  late spt.UserPublic? spotifyUser;
 
-  late String username;
-  late String email;
-  late String fbDocId;
-  late String id;
+  late String? username;
+  late String? email;
+  late String? fbDocId;
+  late String? id;
 
   var friendsList = List<TsUser>.empty(growable: true);
   Map<TsUser, bool> sendTo = {};
 
-  late CircleAvatar profilePicture = CircleAvatar(
-    backgroundColor:
-        Colors.primaries[math.Random().nextInt(Colors.primaries.length)],
-    child: Text(username.substring(0, 2)),
-  );
+  late CircleAvatar profilePicture = defaultProfilePicture();
+
+  static CircleAvatar defaultProfilePicture() {
+    return const CircleAvatar(
+        backgroundColor: circleColor,
+        foregroundColor: darkGray,
+        child: Icon(Icons.account_circle));
+  }
+
+  // Clears everything
+  void signOut() {
+    spotify = null;
+    spotifyUser = null;
+    username = null;
+    email = null;
+    fbDocId = null;
+    id = null;
+    friendsList = List<TsUser>.empty(growable: true);
+    sendTo = {};
+    profilePicture = defaultProfilePicture();
+  }
 
   void setId(String newId) {
     id = newId;
@@ -70,11 +87,7 @@ class UserProvider extends ChangeNotifier {
 
   void setProfilePicture(CircleAvatar? newPp) {
     if (newPp == null) {
-      profilePicture = CircleAvatar(
-        backgroundColor:
-            Colors.primaries[math.Random().nextInt(Colors.primaries.length)],
-        child: Text(username.substring(0, 2)),
-      );
+      profilePicture = defaultProfilePicture();
     } else {
       profilePicture = newPp;
     }

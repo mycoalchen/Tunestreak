@@ -45,7 +45,7 @@ class _MomentsState extends State<Moments> {
     // Play
     if (currentlyPlaying != trackIndex || currentlyPlaying == -1) {
       Track track = await Provider.of<UserProvider>(context, listen: false)
-          .spotify
+          .spotify!
           .tracks
           .get(trackId);
       audioPlayer.pause();
@@ -67,7 +67,7 @@ class _MomentsState extends State<Moments> {
   Future<void> loadSongs() async {
     UserProvider up = Provider.of<UserProvider>(context, listen: false);
     // Get id of moments doc
-    String friendDocId = await getFriendDoc(up.fbDocId, widget.friend.fbDocId);
+    String friendDocId = await getFriendDoc(up.fbDocId!, widget.friend.fbDocId);
     String momentsId = await firestore
         .collection("users")
         .doc(up.fbDocId)
@@ -81,7 +81,7 @@ class _MomentsState extends State<Moments> {
         .get()
         .then((value) async {
       for (String trackId in value.get("songs")) {
-        Track track = await up.spotify.tracks.get(trackId);
+        Track track = await up.spotify!.tracks.get(trackId);
         setState(() {
           moments.add(track);
           songsLoaded++;

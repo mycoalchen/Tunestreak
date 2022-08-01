@@ -10,8 +10,8 @@ String clipString(String string, int length) {
 }
 
 class TsUser {
-  final String name, username, fbDocId;
-  const TsUser(this.name, this.username, this.fbDocId);
+  final String name, username, fbDocId, id;
+  const TsUser(this.name, this.username, this.fbDocId, this.id);
   @override
   bool operator ==(Object other) {
     if (other is! TsUser) {
@@ -19,11 +19,12 @@ class TsUser {
     }
     return (name == other.name &&
         username == other.username &&
-        fbDocId == other.fbDocId);
+        fbDocId == other.fbDocId &&
+        id == other.id);
   }
 
   @override
-  int get hashCode => hash3(name, username, fbDocId);
+  int get hashCode => hash4(name, username, fbDocId, id);
 }
 
 // Represents state of song playback controller

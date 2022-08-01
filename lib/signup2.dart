@@ -32,7 +32,7 @@ class _Signup2State extends State<Signup2> {
   Future<spt.User> getSpotifyUser() async {
     UserProvider userProvider =
         Provider.of<UserProvider>(context, listen: false);
-    spt.User user = await userProvider.spotify.me.get();
+    spt.User user = await userProvider.spotify!.me.get();
     print("got spotify user in getSpotifyUser()");
     return user;
   }
@@ -85,7 +85,7 @@ class _Signup2State extends State<Signup2> {
       'username': username,
       'email': emailController.text,
       'name': nameController.text,
-      'sptId': up.spotifyUser.id,
+      'sptId': up.spotifyUser!.id,
       'ppSet': false,
     };
 
@@ -99,7 +99,7 @@ class _Signup2State extends State<Signup2> {
             });
 
     // Save Spotify credentials to flutter secure storage so we can login with email/password
-    spt.SpotifyApiCredentials sc = await up.spotify.getCredentials();
+    spt.SpotifyApiCredentials sc = await up.spotify!.getCredentials();
     await flutterStorage.write(
         key: "${username}_accessToken", value: sc.accessToken);
     await flutterStorage.write(
@@ -166,6 +166,7 @@ class _Signup2State extends State<Signup2> {
                   child: Text(
                     'Continue',
                     style: connectButtonTextStyle,
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ]),

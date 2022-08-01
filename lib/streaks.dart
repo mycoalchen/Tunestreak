@@ -39,6 +39,7 @@ class StreaksPageState extends State<StreaksPage> {
                       _friendsList[index].name,
                       _friendsList[index].username,
                       _friendsList[index].fbDocId,
+                      _friendsList[index].id,
                     ),
                     firestore,
                     widget.openSendSong);

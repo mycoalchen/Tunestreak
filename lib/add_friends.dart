@@ -21,18 +21,29 @@ class AddFriendsPageState extends State<AddFriendsPage> {
   final _friendSearchController = TextEditingController();
   var _friendsList = List<TsUser>.empty();
 
-  void _friendSearchControllerListener() {
+  void _friendSearchControllerListener() async {
     var newFriendsList = List<TsUser>.empty(growable: true);
-    firestore
+    await firestore
         .collection("users")
         .where("username", isEqualTo: _friendSearchController.text)
         .get()
-        .then((QuerySnapshot res) {
+        .then((QuerySnapshot res) async {
       for (QueryDocumentSnapshot<Object?> doc in res.docs) {
-        print("Found user");
-        TsUser friend = TsUser(doc.get('name'), doc.get('username'), doc.id);
-        print("Added user");
-        newFriendsList.add(friend);
+        // Check that this user isn't already a friend
+        await firestore
+            .collection("users")
+            .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
+            .collection("friends")
+            .where("fbDocId", isEqualTo: doc.id)
+            .get()
+            .then((res) {
+          print("res length ${res.docs.length}");
+          if (res.docs.isEmpty) {
+            TsUser friend = TsUser(
+                doc.get('name'), doc.get('username'), doc.id, doc.get('id'));
+            newFriendsList.add(friend);
+          }
+        });
       }
       setState(() => _friendsList = newFriendsList);
     });
@@ -99,6 +110,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
                       _friendsList[index].name,
                       _friendsList[index].username,
                       _friendsList[index].fbDocId,
+                      _friendsList[index].id,
                     ),
                     firestore);
               }))

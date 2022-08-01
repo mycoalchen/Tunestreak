@@ -46,7 +46,7 @@ class SendSongPageState extends State<SendSongPage> {
         setState(() => currentlyPlaying[i] = false);
       }
       Track track = await Provider.of<UserProvider>(context, listen: false)
-          .spotify
+          .spotify!
           .tracks
           .get(trackId);
       setState(() => currentlyPlaying[trackIndex] = true);
@@ -67,10 +67,10 @@ class SendSongPageState extends State<SendSongPage> {
     List<Track> songs = List<Track>.empty(growable: true);
     List<String> preUrls = List<String>.empty(growable: true);
     UserProvider up = Provider.of<UserProvider>(context, listen: false);
-    await up.spotify.me.recentlyPlayed(limit: songsToLoad).then((value) async {
+    await up.spotify!.me.recentlyPlayed(limit: songsToLoad).then((value) async {
       List<PlayHistory> songList = value.toList();
       for (int i = 0; i < songList.length; i++) {
-        Track track = await up.spotify.tracks.get(songList[i].track!.id!);
+        Track track = await up.spotify!.tracks.get(songList[i].track!.id!);
         songs.add(track);
         if (!mounted) return;
         // Get preview url - if none, it will not be rendered
@@ -93,7 +93,7 @@ class SendSongPageState extends State<SendSongPage> {
     Map<TsUser, bool> sendTo =
         Provider.of<UserProvider>(context, listen: false).sendTo;
     String myFbDocId =
-        Provider.of<UserProvider>(context, listen: false).fbDocId;
+        Provider.of<UserProvider>(context, listen: false).fbDocId!;
     for (var friend in sendTo.entries) {
       if (!friend.value) {
         continue;

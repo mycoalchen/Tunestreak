@@ -45,5 +45,7 @@
 	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Tunestreak requires access to the photo library so that the user can set their profile picture.</string>
 </dict>
 </plist>

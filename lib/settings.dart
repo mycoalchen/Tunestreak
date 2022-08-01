@@ -31,24 +31,24 @@ class _SettingsState extends State<Settings> {
     // Save image to Firebase storage
     final storageRef = FirebaseStorage.instance.ref();
     if (!mounted) return;
-    String id = Provider.of<UserProvider>(context, listen: false).id;
+    String id = Provider.of<UserProvider>(context, listen: false).id!;
     final profilePictureRef = storageRef.child("profilePictures/$id");
     File imageFile = File(image!.path);
     try {
       await profilePictureRef.putFile(imageFile);
+      if (!mounted) return;
       String fbDocId =
-          Provider.of<UserProvider>(context, listen: false).fbDocId;
-      firestore.doc(fbDocId).set(<String, dynamic>{
+          Provider.of<UserProvider>(context, listen: false).fbDocId!;
+      firestore.collection('users').doc(fbDocId).update(<String, dynamic>{
         'ppSet': true,
       });
-      print("finished putting file");
       // Set profile picture in provider
       Provider.of<UserProvider>(context, listen: false)
           .setProfilePicture(CircleAvatar(
         backgroundImage: Image.file(imageFile).image,
       ));
     } on FirebaseException catch (e) {
-      print(e);
+      print("FirebaseException settings.dart line 51: $e");
       return;
     }
   }

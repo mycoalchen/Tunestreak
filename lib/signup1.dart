@@ -157,8 +157,8 @@ class _Signup1State extends State<Signup1> {
                     .then((DocumentSnapshot friend) {
                   print(
                       "Adding friend " + friend.id + ": " + friend.get("name"));
-                  friendsList.add(TsUser(
-                      friend.get("name"), friend.get("username"), friend.id));
+                  friendsList.add(TsUser(friend.get("name"),
+                      friend.get("username"), friend.id, friend.get("id")));
                 });
               }
               if (!mounted) return;
@@ -178,7 +178,7 @@ class _Signup1State extends State<Signup1> {
             if (doc.get("ppSet")) {
               // Get profile picture from Firebase Storage - first need user id
               final String id =
-                  Provider.of<UserProvider>(context, listen: false).id;
+                  Provider.of<UserProvider>(context, listen: false).id!;
               final ppRef =
                   FirebaseStorage.instance.ref().child("profilePictures/$id");
               try {

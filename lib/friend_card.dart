@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
@@ -26,6 +26,8 @@ class AddFriendCard extends StatefulWidget {
 }
 
 class _AddFriendCardState extends State<AddFriendCard> {
+  CircleAvatar profilePicture = UserProvider.defaultProfilePicture();
+
   Future<void> onAddFriendTapped() async {
     final moments =
         await widget.firestore.collection("moments").add({"songs": []});
@@ -40,6 +42,24 @@ class _AddFriendCardState extends State<AddFriendCard> {
       'moments': moments.id
     });
     Provider.of<UserProvider>(context, listen: false).addFriend(widget.user);
+  }
+
+  Future<void> setProfilePicture() async {
+    final storageRef = FirebaseStorage.instance.ref();
+    final profilePictureRef =
+        storageRef.child("profilePictures/${widget.user.id}");
+    var url = await profilePictureRef.getDownloadURL();
+    if (!mounted) return;
+    setState(() {
+      profilePicture =
+          CircleAvatar(backgroundImage: fImage.Image.network(url).image);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    setProfilePicture();
   }
 
   @override
@@ -59,6 +79,7 @@ class _AddFriendCardState extends State<AddFriendCard> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
+              profilePicture,
               Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
@@ -158,7 +179,7 @@ class _StreakCardState extends State<StreakCard>
 
   Future<void> saveToMoments(Track track, BuildContext context) async {
     String friendDocId = await getFriendDoc(
-        Provider.of<UserProvider>(context, listen: false).fbDocId,
+        Provider.of<UserProvider>(context, listen: false).fbDocId!,
         widget.friend.fbDocId);
     print(friendDocId);
     // Set momentsId
@@ -232,7 +253,7 @@ class _StreakCardState extends State<StreakCard>
       });
       // Play the song
       Track track = await Provider.of<UserProvider>(context, listen: false)
-          .spotify
+          .spotify!
           .tracks
           .get(songs[0]);
       if (track.previewUrl != null) {
