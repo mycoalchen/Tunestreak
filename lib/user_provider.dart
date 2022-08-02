@@ -7,8 +7,8 @@ import 'utilities.dart';
 class UserProviderParams {
   late spt.SpotifyApi spotify;
   late spt.UserPublic spotifyUser;
-  late String username, email, fbDocId, id;
-
+  late String username, email, fbDocId;
+  String id = "default"; // This means the user params were not set/found
   UserProviderParams();
 }
 
