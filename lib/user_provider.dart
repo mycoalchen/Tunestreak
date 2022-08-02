@@ -4,6 +4,14 @@ import 'package:tunestreak/constants.dart';
 import 'dart:math' as math;
 import 'utilities.dart';
 
+class UserProviderParams {
+  late spt.SpotifyApi spotify;
+  late spt.UserPublic spotifyUser;
+  late String username, email, fbDocId, id;
+
+  UserProviderParams();
+}
+
 class UserProvider extends ChangeNotifier {
   late spt.SpotifyApi? spotify;
   late spt.UserPublic? spotifyUser;
@@ -17,6 +25,17 @@ class UserProvider extends ChangeNotifier {
   Map<TsUser, bool> sendTo = {};
 
   late CircleAvatar profilePicture = defaultProfilePicture();
+
+  UserProvider(UserProviderParams? params) {
+    if (params != null) {
+      spotify = params.spotify;
+      spotifyUser = params.spotifyUser;
+      username = params.username;
+      email = params.email;
+      fbDocId = params.fbDocId;
+      id = params.id;
+    }
+  }
 
   static CircleAvatar defaultProfilePicture() {
     return const CircleAvatar(

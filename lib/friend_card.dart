@@ -127,6 +127,8 @@ class _StreakCardState extends State<StreakCard>
   late Timer streakTimer;
   // id of the Firebase doc containing the moments of this user and the friend
   String momentsId = "";
+  // Number of unopened songs
+  int numUnopenedSongs = 0;
 
   // Called when song has been open for minStreakLength seconds
   Future<void> onStreakTimerFinished() async {
@@ -444,7 +446,7 @@ class _StreakCardState extends State<StreakCard>
                       ]));
             });
           }).whenComplete(() {
-        setOpenSongButtonColor();
+        setOpenSongButton();
         setStreak(context);
         audioPlayer.pause();
       });
@@ -452,7 +454,8 @@ class _StreakCardState extends State<StreakCard>
   }
 
   // Return an invisible white button style if no songs to open; else return pink background
-  Future<void> setOpenSongButtonColor() async {
+  // Also set sentSongs length
+  Future<void> setOpenSongButton() async {
     // Check if the sentSongs array in this friend's doc in this user's friends collection is empty
     await widget.firestore
         .collection("users")
@@ -465,7 +468,9 @@ class _StreakCardState extends State<StreakCard>
         setState(() {
           openSongButtonColor = pink;
           openSongOverlayColor = darkPink;
+          numUnopenedSongs = List.from(res.docs[0].get("sentSongs")).length;
         });
+        print("numUnopenedSongs: $numUnopenedSongs");
       } else {
         if (!mounted) return;
         setState(() {
@@ -488,8 +493,8 @@ class _StreakCardState extends State<StreakCard>
               progress: position,
               total: playbackEvent.duration,
             )).asBroadcastStream();
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => setOpenSongButtonColor());
+    WidgetsBinding.instance.addPostFrameCallback((_) => setOpenSongButton());
+    setOpenSongButton();
   }
 
   @override
@@ -522,7 +527,8 @@ class _StreakCardState extends State<StreakCard>
                           overlayColor: MaterialStateProperty.all<Color>(
                               openSongOverlayColor)),
                       onPressed: () => onOpenSongTapped(context),
-                      child: Text("Open", style: TextStyle(fontSize: 15.0)),
+                      child: Text("Open ($numUnopenedSongs)",
+                          style: TextStyle(fontSize: 15.0)),
                     ),
                     TextButton(
                       style: addFriendButtonStyle.copyWith(

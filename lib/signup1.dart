@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,17 +5,15 @@ import 'package:provider/provider.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:spotify/spotify.dart' as spt;
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'constants.dart';
 import 'config.dart';
 import 'signup2.dart';
-import 'signin.dart';
 import 'home.dart';
-import 'user_provider.dart';
 import 'user_provider.dart';
 import 'login_webview.dart';
 import 'utilities.dart';
+import 'signin_utilities.dart';
 
 class Signup1 extends StatefulWidget {
   @override
@@ -25,23 +22,9 @@ class Signup1 extends StatefulWidget {
 
 class _Signup1State extends State<Signup1> {
   var authUri;
-  // final storage = const FlutterSecureStorage();
   final firestore = FirebaseFirestore.instance;
 
   bool spotifyLoading = false;
-
-  // Save Spotify API Credentials to FlutterSecureStorage
-  // Future<void> saveSpotifyCredentials(
-  //     spt.SpotifyApi spotifyApi, String username) async {
-  //   spt.SpotifyApiCredentials credentials = await spotifyApi.getCredentials();
-  //   await storage.write(
-  //       key: "${username}_accessToken", value: credentials.accessToken);
-  //   await storage.write(
-  //       key: "${username}_refreshToken", value: credentials.refreshToken);
-  //   await storage.write(
-  //       key: "${username}_expiration",
-  //       value: credentials.expiration.toString());
-  // }
 
   void sendMessage(msg) {
     print('Called sendMessage with msg ' + msg);
@@ -66,10 +49,6 @@ class _Signup1State extends State<Signup1> {
   // copied from https://medium.com/@ekosuprastyo15/webview-in-flutter-example-a11a24eb617f
   Future<void> _handleSpotifyButtonPress(
       BuildContext context, UserProvider userProvider) async {
-    // Map<String, String> storedValues = await storage.readAll();
-    // No stored values - need to do authentication-code flow
-    // if (storedValues.isEmpty) {
-
     // Set SpotifyApi object
     final credentials =
         spt.SpotifyApiCredentials(spotifyClientId, spotifyClientSecret);
@@ -189,13 +168,12 @@ class _Signup1State extends State<Signup1> {
                 Provider.of<UserProvider>(context, listen: false)
                     .setProfilePicture(CircleAvatar(backgroundImage: ppImage));
               } on FirebaseException catch (e) {
-                print("Exception when fetching profile picture: " +
-                    e.code.toString() +
-                    ": " +
-                    e.message.toString());
+                print(
+                    "Exception when fetching profile picture: ${e.code}: ${e.message}");
               }
             }
-
+            // Save to local storage for easy login later
+            saveSpotifyCredentials(spotify, doc.id);
             if (!mounted) return;
             Navigator.pop(context);
             Navigator.push(context,
@@ -207,27 +185,6 @@ class _Signup1State extends State<Signup1> {
         });
       }
     });
-    // }
-    // Read from stored values
-    // else {
-    //   print("Used saved credentials flow");
-    //   final spotifyCredentials = spt.SpotifyApiCredentials(
-    //     storedValues["clientId"],
-    //     storedValues["clientSecret"],
-    //     accessToken: storedValues["accessToken"],
-    //     refreshToken: storedValues["refreshToken"],
-    //     scopes: ['user-read-email', 'user-library-read'],
-    //     expiration: DateTime.parse(storedValues["expiration"].toString()),
-    //   );
-    //   spt.SpotifyApi spotify = spt.SpotifyApi(spotifyCredentials);
-    //   spotifyProvider.setUser(await spotify.me.get());
-    //   spotifyProvider.setSpotify(spotify);
-    //   if (!mounted) return;
-    //   Navigator.push(
-    //     context,
-    //     MaterialPageRoute(builder: (context) => Signup2())
-    //   );
-    // }
   }
 
   Widget _buildSpotifyButton(UserProvider userProvider) {

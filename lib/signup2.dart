@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:spotify/spotify.dart' as spt;
 import 'user_provider.dart';
 import 'constants.dart';
+import 'signin_utilities.dart';
 import 'home.dart';
 
 class Signup2 extends StatefulWidget {
@@ -89,23 +90,13 @@ class _Signup2State extends State<Signup2> {
       'ppSet': false,
     };
 
-    firestore
-        .collection("users")
-        .add(userObject)
-        .then((DocumentReference doc) => {
-              // Set user in provider
-              Provider.of<UserProvider>(context, listen: false)
-                  .setUser(username, emailController.text, doc.id)
-            });
-
-    // Save Spotify credentials to flutter secure storage so we can login with email/password
-    spt.SpotifyApiCredentials sc = await up.spotify!.getCredentials();
-    await flutterStorage.write(
-        key: "${username}_accessToken", value: sc.accessToken);
-    await flutterStorage.write(
-        key: "${username}_refreshToken", value: sc.refreshToken);
-    await flutterStorage.write(
-        key: "${username}_expiration", value: sc.expiration.toString());
+    firestore.collection("users").add(userObject).then((DocumentReference doc) {
+      // Set user in provider
+      Provider.of<UserProvider>(context, listen: false)
+          .setUser(username, emailController.text, doc.id);
+      // Save to local storage to skip login later
+      saveSpotifyCredentials(up.spotify!, doc.id);
+    });
   }
 
   Future<void> handleSignupButtonPress() async {

@@ -23,6 +23,7 @@ class Moments extends StatefulWidget {
 class _MomentsState extends State<Moments> {
   List<Track> moments = List<Track>.empty(growable: true);
   int songsLoaded = 0;
+  bool isLoading = true;
   // Index in list of currently playing song (-1 when no song playing)
   int currentlyPlaying = -1;
   static AudioPlayer audioPlayer = AudioPlayer();
@@ -88,14 +89,20 @@ class _MomentsState extends State<Moments> {
         });
       }
     });
+    setState(() => isLoading = false);
   }
 
   Widget _buildSongsList() {
-    if (songsLoaded == 0) {
+    if (isLoading && songsLoaded == 0) {
       return const Center(
           child: Padding(
               padding: EdgeInsets.all(30),
               child: Text("Loading...", style: TextStyle(fontSize: 16))));
+    } else if (!isLoading && songsLoaded == 0) {
+      return const Center(
+          child: Padding(
+              padding: EdgeInsets.all(30),
+              child: Text("No moments yet!", style: TextStyle(fontSize: 16))));
     } else {
       return Expanded(
           child: ListView.builder(
@@ -147,19 +154,20 @@ class _MomentsState extends State<Moments> {
                                   textAlign: TextAlign.center,
                                   style: songInfoTextStyleBig))))),
             ),
-            Expanded(
-                child: Material(
-                    color: spotifyGreen,
-                    child: InkWell(
-                        onTap: () => {},
-                        splashColor: darkGreen,
-                        child: SizedBox(
-                            height: 90,
-                            child: Center(
-                                child: Text('Save to Spotify',
-                                    textAlign: TextAlign.center,
-                                    style: songInfoTextStyleBig.copyWith(
-                                        color: Colors.black))))))),
+            // TODO: Implement Save to Spotify then uncomment this
+            // Expanded(
+            //     child: Material(
+            //         color: spotifyGreen,
+            //         child: InkWell(
+            //             onTap: () => {},
+            //             splashColor: darkGreen,
+            //             child: SizedBox(
+            //                 height: 90,
+            //                 child: Center(
+            //                     child: Text('Save to Spotify',
+            //                         textAlign: TextAlign.center,
+            //                         style: songInfoTextStyleBig.copyWith(
+            //                             color: Colors.black))))))),
           ]),
     );
   }
