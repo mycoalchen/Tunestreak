@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tunestreak/signup1.dart';
 import 'package:tunestreak/utilities.dart';
 import 'constants.dart';
 import 'settings.dart';
@@ -13,7 +14,9 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   void onSignOutTapped(context) {
     Provider.of<UserProvider>(context, listen: false).signOut();
-    Navigator.popUntil(context, (route) => route.isFirst);
+    Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => Signup1()),
+        (Route<dynamic> route) => false);
   }
 
   @override

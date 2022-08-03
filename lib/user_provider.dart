@@ -1,7 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:spotify/spotify.dart' as spt;
 import 'package:tunestreak/constants.dart';
-import 'dart:math' as math;
 import 'utilities.dart';
 
 class UserProviderParams {
@@ -26,15 +27,14 @@ class UserProvider extends ChangeNotifier {
 
   late CircleAvatar profilePicture = defaultProfilePicture();
 
-  UserProvider(UserProviderParams? params) {
-    if (params != null) {
-      spotify = params.spotify;
-      spotifyUser = params.spotifyUser;
-      username = params.username;
-      email = params.email;
-      fbDocId = params.fbDocId;
-      id = params.id;
-    }
+  void setParams(UserProviderParams params) {
+    spotify = params.spotify;
+    spotifyUser = params.spotifyUser;
+    username = params.username;
+    email = params.email;
+    fbDocId = params.fbDocId;
+    id = params.id;
+    notifyListeners();
   }
 
   static CircleAvatar defaultProfilePicture() {
@@ -76,6 +76,52 @@ class UserProvider extends ChangeNotifier {
     username = newUsername;
     email = newEmail;
     fbDocId = newFbDocId;
+    notifyListeners();
+  }
+
+  // Assumes fbDocId is already set
+  Future<void> fetchAndSetFriendsListAndSendTo() async {
+    // Fetch and set friends list from firestore
+    final users = FirebaseFirestore.instance.collection("users");
+    await users
+        .doc(fbDocId)
+        .collection('friends')
+        .get()
+        .then((QuerySnapshot res) async {
+      for (QueryDocumentSnapshot<Object?> doc in res.docs) {
+        await users
+            .doc(doc.get("fbDocId"))
+            .get()
+            .then((DocumentSnapshot friend) {
+          print("Adding friend  ${friend.id}: ${friend.get("name")}");
+          friendsList.add(TsUser(friend.get("name"), friend.get("username"),
+              friend.id, friend.get("id")));
+        });
+      }
+    });
+    print("Fetched and set friends list");
+    // Set sendTo
+    for (TsUser friend in friendsList) {
+      sendTo[friend] = false;
+    }
+    notifyListeners();
+  }
+
+  Future<void> fetchAndSetProfilePicutre() async {
+    final doc = await FirebaseFirestore.instance.doc("users/$fbDocId").get();
+    if (doc.get("ppSet")) {
+      // Get profile picture from Firebase Storage - first need user id
+      final ppRef = FirebaseStorage.instance.ref().child("profilePictures/$id");
+      try {
+        final ppData = await ppRef.getData(1048576);
+        final ppImage = MemoryImage(ppData!);
+        // Set profile picture in provider
+        profilePicture = CircleAvatar(backgroundImage: ppImage);
+      } on FirebaseException catch (e) {
+        print(
+            "Exception when fetching profile picture: ${e.code}: ${e.message}");
+      }
+    }
     notifyListeners();
   }
 

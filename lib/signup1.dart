@@ -119,62 +119,17 @@ class _Signup1State extends State<Signup1> {
             Provider.of<UserProvider>(context, listen: false).setId(
               fbUserObject.get("id"),
             );
-            // Set friendsList
-            var friendsList = List<TsUser>.empty(growable: true);
-            final users = firestore.collection("users");
-            await users
-                .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
-                .collection('friends')
-                .get()
-                .then((QuerySnapshot res) async {
-              print("Running through friends");
-              for (QueryDocumentSnapshot<Object?> doc in res.docs) {
-                if (!mounted) return;
-                await users
-                    .doc(doc.get("fbDocId"))
-                    .get()
-                    .then((DocumentSnapshot friend) {
-                  print(
-                      "Adding friend " + friend.id + ": " + friend.get("name"));
-                  friendsList.add(TsUser(friend.get("name"),
-                      friend.get("username"), friend.id, friend.get("id")));
-                });
-              }
-              if (!mounted) return;
-            });
-            Provider.of<UserProvider>(context, listen: false)
-                .setFriendsList(friendsList);
-            // Set sendTo
-            Map<TsUser, bool> sendTo = {};
-            for (TsUser friend in friendsList) {
-              sendTo[friend] = false;
-            }
-            Provider.of<UserProvider>(context, listen: false).setSendTo(sendTo);
+            // Set friendsList and sendTo
+            await Provider.of<UserProvider>(context, listen: false)
+                .fetchAndSetFriendsListAndSendTo();
             // Check if this user has a profile picture
-            final fbDocId =
-                Provider.of<UserProvider>(context, listen: false).fbDocId;
-            final doc = await firestore.doc("users/$fbDocId").get();
-            if (doc.get("ppSet")) {
-              // Get profile picture from Firebase Storage - first need user id
-              final String id =
-                  Provider.of<UserProvider>(context, listen: false).id!;
-              final ppRef =
-                  FirebaseStorage.instance.ref().child("profilePictures/$id");
-              try {
-                final ppData = await ppRef.getData(1048576);
-                final ppImage = MemoryImage(ppData!);
-                if (!mounted) return;
-                // Set profile picture in provider
-                Provider.of<UserProvider>(context, listen: false)
-                    .setProfilePicture(CircleAvatar(backgroundImage: ppImage));
-              } on FirebaseException catch (e) {
-                print(
-                    "Exception when fetching profile picture: ${e.code}: ${e.message}");
-              }
-            }
-            // Save to local storage for easy login later
-            saveSpotifyCredentials(spotify, doc.id);
             if (!mounted) return;
+            await Provider.of<UserProvider>(context, listen: false)
+                .fetchAndSetProfilePicutre();
+            // Save to local storage for easy login later
+            if (!mounted) return;
+            saveSpotifyCredentials(spotify,
+                Provider.of<UserProvider>(context, listen: false).fbDocId!);
             Navigator.pop(context);
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => const HomeScreen()));
