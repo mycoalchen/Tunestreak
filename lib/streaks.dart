@@ -26,20 +26,20 @@ class StreaksPageState extends State<StreaksPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<TsUser> _friendsList =
+    List<TsUser> friendsList =
         Provider.of<UserProvider>(context, listen: true).friendsList;
     return Scaffold(
         body: Column(children: [
       Expanded(
           child: ListView.builder(
-              itemCount: _friendsList.length,
+              itemCount: friendsList.length,
               itemBuilder: (BuildContext context, int index) {
                 return StreakCard(
                     TsUser(
-                      _friendsList[index].name,
-                      _friendsList[index].username,
-                      _friendsList[index].fbDocId,
-                      _friendsList[index].id,
+                      friendsList[index].name,
+                      friendsList[index].username,
+                      friendsList[index].fbDocId,
+                      friendsList[index].id,
                     ),
                     firestore,
                     widget.openSendSong);

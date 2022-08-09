@@ -27,8 +27,14 @@ class AddFriendCard extends StatefulWidget {
 
 class _AddFriendCardState extends State<AddFriendCard> {
   CircleAvatar profilePicture = UserProvider.defaultProfilePicture();
+  String addFriendText = "Add Friend";
 
   Future<void> onAddFriendTapped() async {
+    if (Provider.of<UserProvider>(context, listen: false)
+        .friendsList
+        .contains(widget.user)) {
+      return;
+    }
     final moments =
         await widget.firestore.collection("moments").add({"songs": []});
     if (!mounted) return;
@@ -55,6 +61,9 @@ class _AddFriendCardState extends State<AddFriendCard> {
       "moments": moments.id
     });
     Provider.of<UserProvider>(context, listen: false).addFriend(widget.user);
+    setState(() {
+      addFriendText = "Added";
+    });
   }
 
   Future<void> setProfilePicture() async {
@@ -102,9 +111,8 @@ class _AddFriendCardState extends State<AddFriendCard> {
                   ]),
               TextButton(
                 style: addFriendButtonStyle,
-                child:
-                    const Text("Add friend", style: TextStyle(fontSize: 19.0)),
                 onPressed: onAddFriendTapped,
+                child: Text(addFriendText, style: TextStyle(fontSize: 19.0)),
               )
             ]));
   }

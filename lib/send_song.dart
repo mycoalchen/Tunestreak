@@ -19,7 +19,6 @@ class SendSongPage extends StatefulWidget {
 }
 
 class SendSongPageState extends State<SendSongPage> {
-  late List<TsUser> friendsList;
   int songsToLoad = 8;
   int songsLoaded = 0;
   List<bool> currentlyPlaying = List<bool>.filled(8, false);
@@ -92,6 +91,14 @@ class SendSongPageState extends State<SendSongPage> {
   Future<void> sendSong(int trackIndex) async {
     Map<TsUser, bool> sendTo =
         Provider.of<UserProvider>(context, listen: false).sendTo;
+    bool nobodySelected = true;
+    for (bool selected in sendTo.values) {
+      if (selected) {
+        nobodySelected = false;
+        break;
+      }
+    }
+    if (nobodySelected) return;
     String myFbDocId =
         Provider.of<UserProvider>(context, listen: false).fbDocId!;
     for (var friend in sendTo.entries) {
@@ -124,13 +131,28 @@ class SendSongPageState extends State<SendSongPage> {
         });
       });
     }
-    print("Sent song $trackIndex");
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        "Sent song!",
+        textAlign: TextAlign.center,
+        style: settingsTitleStyle,
+      ),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 2),
+      backgroundColor: Colors.white,
+      margin: const EdgeInsets.fromLTRB(30, 0, 30, 10),
+    ));
+    if (!mounted) return;
+    Map<TsUser, bool> newSendTo = sendTo;
+    for (TsUser user in newSendTo.keys) {
+      newSendTo[user] = false;
+    }
+    Provider.of<UserProvider>(context, listen: false).setSendTo(newSendTo);
   }
 
   @override
   void initState() {
     super.initState();
-    friendsList = Provider.of<UserProvider>(context, listen: false).friendsList;
     loadSongs();
   }
 
@@ -148,6 +170,9 @@ class SendSongPageState extends State<SendSongPage> {
         child: ListView.builder(
             itemCount: songsLoaded,
             itemBuilder: (BuildContext context, int index) {
+              if (previewUrls.length <= index || previewUrls[index] == "") {
+                return Container();
+              }
               Track track = recentlyPlayed[index];
               return SongCard(index, track, playPause, onPlaySongTapped, true,
                   sendSong: sendSong);
@@ -160,6 +185,8 @@ class SendSongPageState extends State<SendSongPage> {
   Widget build(BuildContext context) {
     Map<TsUser, bool> sendTo =
         Provider.of<UserProvider>(context, listen: true).sendTo;
+    List<TsUser> friendsList =
+        Provider.of<UserProvider>(context, listen: true).friendsList;
     return Scaffold(
       body: Column(children: [
         // Friends list
@@ -176,9 +203,6 @@ class SendSongPageState extends State<SendSongPage> {
             itemCount: friendsList.length,
             itemBuilder: (BuildContext context, int index) {
               // Do not display if it doesn't have a preview url or if preview url hasn't been loaded
-              if (previewUrls.length <= index || previewUrls[index] == "") {
-                return Container();
-              }
               return Container(
                   padding: EdgeInsets.fromLTRB(30, 5, 30, 5),
                   decoration: sendToCardDecoration,
