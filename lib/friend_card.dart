@@ -31,6 +31,8 @@ class _AddFriendCardState extends State<AddFriendCard> {
   Future<void> onAddFriendTapped() async {
     final moments =
         await widget.firestore.collection("moments").add({"songs": []});
+    if (!mounted) return;
+    // Add friend in this user's friends collection
     widget.firestore
         .collection("users")
         .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
@@ -40,6 +42,17 @@ class _AddFriendCardState extends State<AddFriendCard> {
       "streak": 0,
       'sentSongs': [],
       'moments': moments.id
+    });
+    // Add this user in friend's friends collection
+    widget.firestore
+        .collection("users")
+        .doc(widget.user.fbDocId)
+        .collection("friends")
+        .add({
+      "fbDocId": Provider.of<UserProvider>(context, listen: false).fbDocId,
+      "streak": 0,
+      "sentSongs": [],
+      "moments": moments.id
     });
     Provider.of<UserProvider>(context, listen: false).addFriend(widget.user);
   }

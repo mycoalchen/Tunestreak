@@ -1,0 +1,6 @@
+version: "Apple Swift version 5.6.1 (swiftlang-5.6.0.323.66 clang-1316.0.20.12)"
+options: "e79565884046c5577ec5b4872fbbd35ae59a93464bac28c63c798b4834c6b383"
+build_start_time: [1659670959, 409678936]
+build_end_time: [1659670961, 873286008]
+inputs:
+  "/Users/chenm/Documents/Flutter Projects/Tunestreak/ios/Runner/AppDelegate.swift": [1657744731, 0]
