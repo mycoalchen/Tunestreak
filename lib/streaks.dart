@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'friend_card.dart';
+import 'streak_card.dart';
 import 'add_friends.dart';
 import 'user_provider.dart';
 import 'constants.dart';
