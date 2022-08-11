@@ -137,55 +137,55 @@ class _StreakCardState extends State<StreakCard>
     String docId = Provider.of<UserProvider>(context, listen: false).fbDocId!;
     String friendDocId = await getFriendDoc(docId, widget.friend.fbDocId);
     String myDocId = await getFriendDoc(widget.friend.fbDocId, docId);
-    // streakStatus 2 - Sent
+    // streakStatus 1 - Open
     await widget.firestore
         .collection("users")
-        .doc(widget.friend.fbDocId)
+        .doc(docId)
         .collection("friends")
-        .doc(myDocId)
+        .doc(friendDocId)
         .get()
-        .then((doc) async {
-      if (List.from(doc.get("sentSongs")).isNotEmpty) {
-        setState(() => streakStatus = 2);
-      } else {
-        await widget.firestore
-            .collection("users")
-            .doc(docId)
-            .collection("friends")
-            .doc(friendDocId)
-            .get()
-            .then((doc) {
-          final data = doc.data();
-          if (!data!.containsKey("lastOpenedByMe")) {
-            setState(() => streakStatus = 0);
-          } else if (data["lastOpenedByMe"] == false) {
-            setState(() => streakStatus = 3);
-          } else if (data["lastOpenedByMe"] == true) {
-            setState(() => streakStatus = 4);
-          }
+        .then((res) async {
+      if (List.from(res.get("sentSongs")).isNotEmpty) {
+        // streakStatus = 1 - Open
+        // Make Open button visible and set numOpenedSongs
+        setState(() {
+          streakStatus = 1;
+          openSongButtonColor = pink;
+          openSongOverlayColor = darkPink;
+          numUnopenedSongs = List.from(res.get("sentSongs")).length;
         });
+      } else {
+        if (!mounted) return;
+        setState(() {
+          openSongButtonColor = Colors.white;
+          openSongOverlayColor = Colors.white;
+        });
+        // streakStatus 2 - Sent
         await widget.firestore
             .collection("users")
-            .doc(docId)
+            .doc(widget.friend.fbDocId)
             .collection("friends")
-            .doc(friendDocId)
+            .doc(myDocId)
             .get()
-            .then((res) {
-          if (List.from(res.get("sentSongs")).isNotEmpty) {
-            // streakStatus = 1 - Open
-            // Make Open button visible and set numOpenedSongs
-            setState(() {
-              streakStatus = 1;
-              openSongButtonColor = pink;
-              openSongOverlayColor = darkPink;
-              numUnopenedSongs = List.from(res.get("sentSongs")).length;
-            });
+            .then((doc) async {
+          if (List.from(doc.get("sentSongs")).isNotEmpty) {
+            setState(() => streakStatus = 2);
           } else {
-            // streakStatus = 0 - None
-            if (!mounted) return;
-            setState(() {
-              openSongButtonColor = Colors.white;
-              openSongOverlayColor = Colors.white;
+            await widget.firestore
+                .collection("users")
+                .doc(docId)
+                .collection("friends")
+                .doc(friendDocId)
+                .get()
+                .then((doc) {
+              final data = doc.data();
+              if (!data!.containsKey("lastOpenedByMe")) {
+                setState(() => streakStatus = 0);
+              } else if (data["lastOpenedByMe"] == false) {
+                setState(() => streakStatus = 3);
+              } else if (data["lastOpenedByMe"] == true) {
+                setState(() => streakStatus = 4);
+              }
             });
           }
         });
