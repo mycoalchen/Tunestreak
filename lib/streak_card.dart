@@ -137,58 +137,58 @@ class _StreakCardState extends State<StreakCard>
     String docId = Provider.of<UserProvider>(context, listen: false).fbDocId!;
     String friendDocId = await getFriendDoc(docId, widget.friend.fbDocId);
     String myDocId = await getFriendDoc(widget.friend.fbDocId, docId);
-    // streakStatus 1 - Open
-    await widget.firestore
-        .collection("users")
-        .doc(docId)
-        .collection("friends")
-        .doc(friendDocId)
-        .get()
-        .then((res) {
-      if (List.from(res.get("sentSongs")).isNotEmpty) {
-        // Make Open button visible and set numOpenedSongs
-        setState(() {
-          streakStatus = 1;
-          openSongButtonColor = pink;
-          openSongOverlayColor = darkPink;
-          numUnopenedSongs = List.from(res.get("sentSongs")).length;
-        });
-        return;
-      } else {
-        if (!mounted) return;
-        setState(() {
-          openSongButtonColor = Colors.white;
-          openSongOverlayColor = Colors.white;
-        });
-      }
-    });
     // streakStatus 2 - Sent
-    widget.firestore
+    await widget.firestore
         .collection("users")
         .doc(widget.friend.fbDocId)
         .collection("friends")
         .doc(myDocId)
         .get()
-        .then((doc) {
+        .then((doc) async {
       if (List.from(doc.get("sentSongs")).isNotEmpty) {
         setState(() => streakStatus = 2);
-        return;
-      }
-    });
-    widget.firestore
-        .collection("users")
-        .doc(docId)
-        .collection("friends")
-        .doc(friendDocId)
-        .get()
-        .then((doc) {
-      final data = doc.data();
-      if (!data!.containsKey("lastOpenedByMe")) {
-        setState(() => streakStatus = 0);
-      } else if (data["lastOpenedByMe"] == false) {
-        setState(() => streakStatus = 3);
-      } else if (data["lastOpenedByMe"] == true) {
-        setState(() => streakStatus = 4);
+      } else {
+        await widget.firestore
+            .collection("users")
+            .doc(docId)
+            .collection("friends")
+            .doc(friendDocId)
+            .get()
+            .then((doc) {
+          final data = doc.data();
+          if (!data!.containsKey("lastOpenedByMe")) {
+            setState(() => streakStatus = 0);
+          } else if (data["lastOpenedByMe"] == false) {
+            setState(() => streakStatus = 3);
+          } else if (data["lastOpenedByMe"] == true) {
+            setState(() => streakStatus = 4);
+          }
+        });
+        await widget.firestore
+            .collection("users")
+            .doc(docId)
+            .collection("friends")
+            .doc(friendDocId)
+            .get()
+            .then((res) {
+          if (List.from(res.get("sentSongs")).isNotEmpty) {
+            // streakStatus = 1 - Open
+            // Make Open button visible and set numOpenedSongs
+            setState(() {
+              streakStatus = 1;
+              openSongButtonColor = pink;
+              openSongOverlayColor = darkPink;
+              numUnopenedSongs = List.from(res.get("sentSongs")).length;
+            });
+          } else {
+            // streakStatus = 0 - None
+            if (!mounted) return;
+            setState(() {
+              openSongButtonColor = Colors.white;
+              openSongOverlayColor = Colors.white;
+            });
+          }
+        });
       }
     });
   }
@@ -239,18 +239,24 @@ class _StreakCardState extends State<StreakCard>
   }
 
   void onOpenSongTapped(context) async {
-    final friendsCollection = widget.firestore
-        .collection("users")
-        .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
-        .collection("friends");
-    String friendDocId = await getFriendDoc(
-        Provider.of<UserProvider>(context, listen: false).fbDocId!,
-        widget.friend.fbDocId);
+    String docId = Provider.of<UserProvider>(context, listen: false).fbDocId!;
+    final friendsCollection =
+        widget.firestore.collection("users").doc(docId).collection("friends");
+    String friendDocId = await getFriendDoc(docId, widget.friend.fbDocId);
+    String myDocId = await getFriendDoc(widget.friend.fbDocId, docId);
     await friendsCollection.doc(friendDocId).get().then((value) async {
       List<String> songs = List.from(value.get("sentSongs"));
+      if (songs.isEmpty) return;
       await friendsCollection.doc(friendDocId).update({
         "sentSongs": FieldValue.arrayRemove([songs[0]])
       });
+      await friendsCollection.doc(friendDocId).update({"lastOpenedByMe": true});
+      await widget.firestore
+          .collection("users")
+          .doc(widget.friend.fbDocId)
+          .collection("friends")
+          .doc(myDocId)
+          .update({"lastOpenedByMe": false});
       // Play the song
       Track track = await Provider.of<UserProvider>(context, listen: false)
           .spotify!
