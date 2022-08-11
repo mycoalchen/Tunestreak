@@ -109,16 +109,8 @@ TextStyle settingsTitleStyle = const TextStyle(
   fontSize: 15,
 );
 
-TextStyle welcomeTextStyle = const TextStyle(
-    color: Colors.white,
-    fontSize: 45.0,
-    fontWeight: FontWeight.bold,
-    shadows: [
-      Shadow(
-        blurRadius: 6,
-        color: darkGray,
-      )
-    ]);
+TextStyle welcomeTextStyle =
+    const TextStyle(color: Colors.white, fontSize: 20.0);
 
 TextStyle songInfoTextStyleSmall = const TextStyle(
   color: darkGray,
@@ -129,6 +121,21 @@ TextStyle songInfoTextStyleBig = const TextStyle(
   color: Colors.white,
   fontSize: 17.0,
 );
+
+TextStyle basicBlack(double size) {
+  return TextStyle(color: Colors.black, fontSize: size);
+}
+
+TextStyle statusIndicatorTextStyle = const TextStyle(
+  color: pink,
+  fontSize: 13.0,
+);
+
+WidgetSpan statusIndicatorIcon(IconData icon) {
+  return WidgetSpan(
+      child: Icon(icon, color: pink, size: 20),
+      alignment: PlaceholderAlignment.middle);
+}
 
 ButtonStyle addFriendButtonStyle = ButtonStyle(
     backgroundColor: MaterialStateProperty.all<Color>(spotifyGreen),
