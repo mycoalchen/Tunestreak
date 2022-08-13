@@ -50,6 +50,8 @@ class _StreakCardState extends State<StreakCard>
   // Send/Receive status indicator
   // 0 None, 1 Open, 2 Sent, 3 Opened by friend, 4 Opened by me
   int streakStatus = 0;
+  // Time since last song-opening
+  String timeSinceLastOpened = "";
 
   // Called when song has been open for minStreakLength seconds
   Future<void> onStreakTimerFinished() async {
@@ -114,14 +116,44 @@ class _StreakCardState extends State<StreakCard>
   }
 
   Future<void> setStreak(BuildContext context) async {
+    final String docId =
+        Provider.of<UserProvider>(context, listen: false).fbDocId!;
+    final String friendDocId = await getFriendDoc(docId, widget.friend.fbDocId);
+    await widget.firestore
+        .collection("users")
+        .doc(docId)
+        .collection("friends")
+        .doc(friendDocId)
+        .get()
+        .then((doc) async {
+      Map<String, dynamic> data = doc.data()!;
+      if (data.containsKey("lastOpenedTime")) {
+        DateTime lastOpened = (data["lastOpenedTime"] as Timestamp).toDate();
+        final timeElapsed = DateTime.now().difference(lastOpened);
+        if (timeElapsed.inSeconds > 86400) {
+          // Set streak to 0
+          setFriendSharedValue("streak", 0, docId, widget.friend.fbDocId);
+        }
+        // Set timeSinceLastOpened
+        else {
+          if (timeElapsed.inHours > 0) {
+            setState(() => timeSinceLastOpened = "${timeElapsed.inHours}h");
+          } else if (timeElapsed.inMinutes > 0) {
+            setState(() => timeSinceLastOpened = "${timeElapsed.inMinutes}m");
+          } else {
+            setState(() => timeSinceLastOpened = "${timeElapsed.inSeconds}s");
+          }
+        }
+      }
+    });
     widget.firestore
         .collection("users")
-        .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
+        .doc(docId)
         .collection("friends")
-        .where("fbDocId", isEqualTo: widget.friend.fbDocId)
+        .doc(friendDocId)
         .get()
         .then((value) {
-      setState(() => streak = value.docs[0].get("streak").toString());
+      setState(() => streak = value.get("streak").toString());
     });
   }
 
@@ -250,13 +282,22 @@ class _StreakCardState extends State<StreakCard>
       await friendsCollection.doc(friendDocId).update({
         "sentSongs": FieldValue.arrayRemove([songs[0]])
       });
-      await friendsCollection.doc(friendDocId).update({"lastOpenedByMe": true});
-      await widget.firestore
-          .collection("users")
-          .doc(widget.friend.fbDocId)
-          .collection("friends")
-          .doc(myDocId)
-          .update({"lastOpenedByMe": false});
+      // If the last song wasn't opened by me, update the lastOpenedTime (streak time) and lastOpenedByMe
+      await friendsCollection.doc(friendDocId).get().then((value) async {
+        Map<String, dynamic> data = value.data()!;
+        if (!data.containsKey("lastOpenedByMe") ||
+            data["lastOpenedByMe"] == false) {
+          await friendsCollection.doc(friendDocId).update(
+              {"lastOpenedTime": Timestamp.now(), "lastOpenedByMe": true});
+          await widget.firestore
+              .collection("users")
+              .doc(widget.friend.fbDocId)
+              .collection("friends")
+              .doc(myDocId)
+              .update(
+                  {"lastOpenedTime": Timestamp.now(), "lastOpenedByMe": false});
+        }
+      });
       // Play the song
       Track track = await Provider.of<UserProvider>(context, listen: false)
           .spotify!
@@ -497,7 +538,7 @@ class _StreakCardState extends State<StreakCard>
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(streak, style: const TextStyle(fontSize: 15.0)),
-                          Text('7h left',
+                          Text('${timeSinceLastOpened}',
                               style: const TextStyle(fontSize: 12.5)),
                         ])
                   ]),

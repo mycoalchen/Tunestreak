@@ -56,6 +56,25 @@ Future<String> getFriendDoc(String userId, String friendId) async {
   return ans;
 }
 
+// Set the property to the value in user1's friend doc of user2 and user2's friend doc of user1
+Future<void> setFriendSharedValue(
+    String property, dynamic value, String userId1, String userId2) async {
+  String friendId1 = await getFriendDoc(userId2, userId1);
+  String friendId2 = await getFriendDoc(userId1, userId2);
+  await FirebaseFirestore.instance
+      .collection("users")
+      .doc(userId1)
+      .collection('friends')
+      .doc(friendId2)
+      .set({property: value});
+  await FirebaseFirestore.instance
+      .collection("users")
+      .doc(userId2)
+      .collection('friends')
+      .doc(friendId1)
+      .set({property: value});
+}
+
 // Check that QuerySnapshot only contains 1 doc
 bool hasOneDoc(QuerySnapshot res, String line) {
   if (res.docs.isEmpty) {
