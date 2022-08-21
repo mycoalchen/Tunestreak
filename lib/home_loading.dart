@@ -65,7 +65,7 @@ class _HomeLoadingState extends State<HomeLoading> {
             Provider.of<UserProvider>(context, listen: false).setParams(params);
             // Set friendsList and sendTo
             await Provider.of<UserProvider>(context, listen: false)
-                .fetchAndSetFriendsListAndSendTo();
+                .fetchAndSetFriends();
             // Check if this user has a profile picture
             if (!mounted) return;
             await Provider.of<UserProvider>(context, listen: false)

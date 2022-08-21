@@ -24,6 +24,7 @@ class UserProvider extends ChangeNotifier {
 
   var friendsList = List<TsUser>.empty(growable: true);
   Map<TsUser, bool> sendTo = {};
+  Map<TsUser, CircleAvatar> friendPps = {};
 
   late CircleAvatar profilePicture = defaultProfilePicture();
 
@@ -79,8 +80,8 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Assumes fbDocId is already set
-  Future<void> fetchAndSetFriendsListAndSendTo() async {
+  // Assumes fbDocId is already set - sets friendsList, sendTo, and friendPps
+  Future<void> fetchAndSetFriends() async {
     // Fetch and set friends list from firestore
     final users = FirebaseFirestore.instance.collection("users");
     await users
@@ -103,6 +104,16 @@ class UserProvider extends ChangeNotifier {
     // Set sendTo
     for (TsUser friend in friendsList) {
       sendTo[friend] = false;
+      // Get profile picture from Firebase Storage
+      try {
+        final ppRef =
+            await FirebaseStorage.instance.ref('profilePictures/${friend.id}');
+        final ppData = await ppRef.getData(1048576);
+        final ppImage = MemoryImage(ppData!);
+        friendPps[friend] = CircleAvatar(backgroundImage: ppImage);
+      } catch (e) {
+        friendPps[friend] = defaultProfilePicture();
+      }
     }
     notifyListeners();
   }

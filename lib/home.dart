@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tunestreak/home_app_bar.dart';
+import 'package:tunestreak/notification.dart';
 import 'add_friends.dart';
 import 'send_song.dart';
 import 'streaks.dart';
@@ -41,8 +42,21 @@ class _HomeScreenState extends State<HomeScreen>
 
   int _selectedIndex = 0;
 
+  // String notificationTitle = 'No Title';
+  // String notificationBody = 'No Body';
+  // String notificationData = 'No Data';
+
+  // _changeData(String msg) => setState(() => notificationData = msg);
+  // _changeBody(String msg) => setState(() => notificationBody = msg);
+  // _changeTitle(String msg) => setState(() => notificationTitle = msg);
+
   @override
   void initState() {
+    // final firebaseMessaging = FCM();
+    // firebaseMessaging.setNotifications();
+    // firebaseMessaging.streamCtlr.stream.listen(_changeData);
+    // firebaseMessaging.bodyCtlr.stream.listen(_changeBody);
+    // firebaseMessaging.titleCtlr.stream.listen(_changeTitle);
     super.initState();
   }
 

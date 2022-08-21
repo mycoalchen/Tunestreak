@@ -66,13 +66,13 @@ Future<void> setFriendSharedValue(
       .doc(userId1)
       .collection('friends')
       .doc(friendId2)
-      .update({property: value});
+      .set({property: value}, SetOptions(merge: true));
   await FirebaseFirestore.instance
       .collection("users")
       .doc(userId2)
       .collection('friends')
       .doc(friendId1)
-      .update({property: value});
+      .set({property: value}, SetOptions(merge: true));
 }
 
 // Check that QuerySnapshot only contains 1 doc

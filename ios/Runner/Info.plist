@@ -26,10 +26,15 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Tunestreak requires access to the photo library so that the user can set their profile picture.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Tunestreak uses the in-app webview API which requires microphones access</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Tunestreak requires access to the photo library so that the user can set their profile picture.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

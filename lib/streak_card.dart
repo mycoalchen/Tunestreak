@@ -526,14 +526,23 @@ class _StreakCardState extends State<StreakCard>
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(widget.friend.username,
-                              style: const TextStyle(fontSize: 15.0)),
-                          Text(widget.friend.name,
-                              style: const TextStyle(fontSize: 12.5))
-                        ]),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Provider.of<UserProvider>(context, listen: true)
+                                .friendPps[widget.friend] ??
+                            UserProvider.defaultProfilePicture(),
+                        SizedBox(width: 10),
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(widget.friend.username,
+                                  style: const TextStyle(fontSize: 15.0)),
+                              Text(widget.friend.name,
+                                  style: const TextStyle(fontSize: 12.5))
+                            ]),
+                      ],
+                    ),
                     Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [

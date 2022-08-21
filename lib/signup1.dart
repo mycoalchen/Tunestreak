@@ -121,7 +121,7 @@ class _Signup1State extends State<Signup1> {
             );
             // Set friendsList and sendTo
             await Provider.of<UserProvider>(context, listen: false)
-                .fetchAndSetFriendsListAndSendTo();
+                .fetchAndSetFriends();
             // Check if this user has a profile picture
             if (!mounted) return;
             await Provider.of<UserProvider>(context, listen: false)
