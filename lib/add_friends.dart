@@ -65,6 +65,33 @@ class AddFriendsPageState extends State<AddFriendsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Column(children: [
+      // Friend requests
+      Container(
+        decoration: const BoxDecoration(
+            border: Border(
+                bottom: BorderSide(
+          color: circleColor,
+          width: 1,
+        ))),
+        child: AppBar(
+          backgroundColor: Colors.transparent,
+          toolbarHeight: 60.0,
+          centerTitle: false,
+          automaticallyImplyLeading: false,
+          title: Text("Friend requests", style: header1),
+          elevation: 0,
+        ),
+      ),
+
+      // Find friends
+      AppBar(
+        backgroundColor: Colors.transparent,
+        toolbarHeight: 60.0,
+        centerTitle: false,
+        automaticallyImplyLeading: false,
+        title: Text("Find friends", style: header1),
+        elevation: 0,
+      ),
       AppBar(
           backgroundColor: Colors.white,
           toolbarHeight: 60.0,

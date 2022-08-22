@@ -22,6 +22,11 @@ class _AddFriendCardState extends State<AddFriendCard> {
   CircleAvatar profilePicture = UserProvider.defaultProfilePicture();
   String addFriendText = "Add Friend";
 
+  // Determine if button should say "Add Friend" or "Added"
+  Future<void> setCanAddFriend() async {
+    // Check this user's sentFriendRequestsCollection
+  }
+
   Future<void> onAddFriendTapped() async {
     if (Provider.of<UserProvider>(context, listen: false)
         .friendsList
@@ -106,6 +111,72 @@ class _AddFriendCardState extends State<AddFriendCard> {
                 style: addFriendButtonStyle,
                 onPressed: onAddFriendTapped,
                 child: Text(addFriendText, style: TextStyle(fontSize: 19.0)),
+              )
+            ]));
+  }
+}
+
+class RemoveFriendCard extends StatefulWidget {
+  final TsUser user;
+  final FirebaseFirestore firestore;
+  const RemoveFriendCard(this.user, this.firestore);
+
+  @override
+  State<RemoveFriendCard> createState() => _RemoveFriendCardState();
+}
+
+class _RemoveFriendCardState extends State<RemoveFriendCard> {
+  CircleAvatar profilePicture = UserProvider.defaultProfilePicture();
+
+  Future<void> onRemoveFriendTapped() async {}
+
+  Future<void> setProfilePicture() async {
+    final storageRef = FirebaseStorage.instance.ref();
+    final profilePictureRef =
+        storageRef.child("profilePictures/${widget.user.id}");
+    var url = await profilePictureRef.getDownloadURL();
+    if (!mounted) return;
+    setState(() {
+      profilePicture =
+          CircleAvatar(backgroundImage: fImage.Image.network(url).image);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    setProfilePicture();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+        padding: EdgeInsets.fromLTRB(30, 10, 30, 10),
+        height: 75,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(
+              bottom: BorderSide(
+            color: circleColor,
+            width: 2.0,
+          )),
+        ),
+        child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              profilePicture,
+              Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(widget.user.username,
+                        style: TextStyle(fontSize: 18.0)),
+                    Text(widget.user.name, style: TextStyle(fontSize: 14.0)),
+                  ]),
+              TextButton(
+                style: removeFriendButtonStyle,
+                onPressed: onRemoveFriendTapped,
+                child: Text("Remove friend", style: TextStyle(fontSize: 19.0)),
               )
             ]));
   }

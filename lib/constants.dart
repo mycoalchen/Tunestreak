@@ -155,6 +155,14 @@ ButtonStyle addFriendButtonStyle = ButtonStyle(
       borderRadius: BorderRadius.circular(20.0),
     )));
 
+ButtonStyle removeFriendButtonStyle = ButtonStyle(
+    backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+    foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+        RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(20.0),
+    )));
+
 ButtonStyle openMomentsButtonStyle = ButtonStyle(
     backgroundColor: MaterialStateProperty.all<Color>(spotifyGreen),
     foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
