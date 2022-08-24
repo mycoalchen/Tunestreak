@@ -44,13 +44,14 @@ class _AddFriendCardState extends State<AddFriendCard> {
       up.setSentFriendRequests(sfr);
       setState(() => addFriendText = "Requested");
     } else if (addFriendText == "Accept") {
+      final up = Provider.of<UserProvider>(context, listen: false);
       // Add friend in this user's friends collection
       final moments =
           await widget.firestore.collection("moments").add({"songs": []});
       if (!mounted) return;
-      widget.firestore
+      await widget.firestore
           .collection("users")
-          .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
+          .doc(up.fbDocId)
           .collection("friends")
           .add({
         "fbDocId": widget.user.fbDocId,
@@ -59,17 +60,32 @@ class _AddFriendCardState extends State<AddFriendCard> {
         'moments': moments.id
       });
       // Add this user in friend's friends collection
-      widget.firestore
+      if (!mounted) return;
+      await widget.firestore
           .collection("users")
           .doc(widget.user.fbDocId)
           .collection("friends")
           .add({
-        "fbDocId": Provider.of<UserProvider>(context, listen: false).fbDocId,
+        "fbDocId": up.fbDocId,
         "streak": 0,
         "sentSongs": [],
         "moments": moments.id
       });
-      Provider.of<UserProvider>(context, listen: false).addFriend(widget.user);
+      // Remove this friend request in this user's receivedFriendRequests array
+      if (!mounted) return;
+      await widget.firestore.collection("users").doc(up.fbDocId).update({
+        "receivedFriendRequests": FieldValue.arrayRemove([widget.user.fbDocId])
+      });
+      // Remove this friend request in the friend's sentFriendRequests array
+      if (!mounted) return;
+      await widget.firestore
+          .collection("users")
+          .doc(widget.user.fbDocId)
+          .update({
+        "sentFriendRequests": FieldValue.arrayRemove([up.fbDocId])
+      });
+      if (!mounted) return;
+      up.addFriend(widget.user);
       setState(() => addFriendText = "Added");
     }
   }
