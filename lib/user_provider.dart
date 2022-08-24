@@ -25,6 +25,8 @@ class UserProvider extends ChangeNotifier {
   var friendsList = List<TsUser>.empty(growable: true);
   Map<TsUser, bool> sendTo = {};
   Map<TsUser, CircleAvatar> friendPps = {};
+  List<String>? sentFriendRequests;
+  List<String>? receivedFriendRequests;
 
   late CircleAvatar profilePicture = defaultProfilePicture();
 
@@ -56,6 +58,8 @@ class UserProvider extends ChangeNotifier {
     friendsList = List<TsUser>.empty(growable: true);
     sendTo = {};
     profilePicture = defaultProfilePicture();
+    sentFriendRequests = [];
+    receivedFriendRequests = [];
   }
 
   void setId(String newId) {
@@ -167,6 +171,16 @@ class UserProvider extends ChangeNotifier {
     } else {
       profilePicture = newPp;
     }
+    notifyListeners();
+  }
+
+  void setSentFriendRequests(List<String> newFr) {
+    sentFriendRequests = newFr;
+    notifyListeners();
+  }
+
+  void setReceivedFriendRequests(List<String> newFr) {
+    receivedFriendRequests = newFr;
     notifyListeners();
   }
 }

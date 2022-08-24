@@ -88,6 +88,8 @@ class _Signup2State extends State<Signup2> {
       'name': nameController.text,
       'sptId': up.spotifyUser!.id,
       'ppSet': false,
+      'receivedFriendRequests': [],
+      'sentFriendRequests': [],
     };
 
     firestore.collection("users").add(userObject).then((DocumentReference doc) {

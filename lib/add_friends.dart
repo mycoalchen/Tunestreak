@@ -7,6 +7,13 @@ import 'friend_card.dart';
 import 'constants.dart';
 import 'utilities.dart';
 
+// Used in ListView - stores TsUser information and whether or not we've sent a friend request
+class TsUserToFriend {
+  final TsUser user;
+  final bool requested;
+  const TsUserToFriend(this.user, this.requested);
+}
+
 class AddFriendsPage extends StatefulWidget {
   const AddFriendsPage({Key? key}) : super(key: key);
 
@@ -19,39 +26,97 @@ class AddFriendsPageState extends State<AddFriendsPage> {
   final firestore = FirebaseFirestore.instance;
 
   final _friendSearchController = TextEditingController();
-  var _friendsList = List<TsUser>.empty();
+  var findFriendsList = List<TsUserToFriend>.empty();
+  var friendRequestList = List<TsUser>.empty();
+
+  void loadFriendRequests() async {
+    UserProvider up = Provider.of<UserProvider>(context, listen: false);
+    // Set sentFriendRequests and receivedFriendRequests in Provider
+    // This reads every time the page is open, which seems a bit wasteful
+    await firestore.collection("users").doc(up.fbDocId).get().then((doc) async {
+      List<String> sfr = List.from(doc.get("sentFriendRequests"));
+      List<String> rfr = List.from(doc.get("receivedFriendRequests"));
+      up.setReceivedFriendRequests(rfr);
+      up.setSentFriendRequests(sfr);
+      // Load the TsUsers associated with each receivedFriendRequest one by one
+      for (String fbDocId in rfr) {
+        await firestore.collection("users").doc(fbDocId).get().then((doc) {
+          if (!mounted) return;
+          setState(() {
+            friendRequestList = [
+              ...friendRequestList,
+              TsUser(
+                  doc.get("name"), doc.get("username"), doc.id, doc.get("id"))
+            ];
+          });
+        });
+      }
+    });
+  }
 
   void _friendSearchControllerListener() async {
-    var newFriendsList = List<TsUser>.empty(growable: true);
+    var newFriendsList = List<TsUserToFriend>.empty(growable: true);
+    final up = Provider.of<UserProvider>(context, listen: false);
     await firestore
         .collection("users")
         .where("username", isEqualTo: _friendSearchController.text)
         .get()
         .then((QuerySnapshot res) async {
       for (QueryDocumentSnapshot<Object?> doc in res.docs) {
-        // Check that this user isn't already a friend
-        await firestore
-            .collection("users")
-            .doc(Provider.of<UserProvider>(context, listen: false).fbDocId)
-            .collection("friends")
-            .where("fbDocId", isEqualTo: doc.id)
-            .get()
-            .then((res) {
-          print("res length ${res.docs.length}");
-          if (res.docs.isEmpty) {
-            TsUser friend = TsUser(
-                doc.get('name'), doc.get('username'), doc.id, doc.get('id'));
-            newFriendsList.add(friend);
+        // Check that the returned user isn't already a friend
+        bool isFriend = false;
+        for (TsUser friend in up.friendsList) {
+          if (friend.fbDocId == doc.id) {
+            isFriend = true;
+            break;
           }
-        });
+        }
+        if (isFriend) continue;
+        // Check if we've already requested to add this friend
+        List<String>? sfr = up.sentFriendRequests;
+        if (sfr != null) {
+          bool requestAlreadySent = false;
+          for (String requestedFriendDocId in sfr) {
+            if (requestedFriendDocId == doc.id) {
+              requestAlreadySent = true;
+              break;
+            }
+          }
+          TsUser friend = TsUser(
+              doc.get('name'), doc.get('username'), doc.id, doc.get('id'));
+          if (requestAlreadySent) {
+            newFriendsList.add(TsUserToFriend(friend, true));
+          } else {
+            newFriendsList.add(TsUserToFriend(friend, false));
+          }
+        }
       }
-      setState(() => _friendsList = newFriendsList);
+      setState(() => findFriendsList = newFriendsList);
     });
+  }
+
+  Widget _buildFriendRequestsList(context) {
+    if (friendRequestList.isEmpty) {
+      return const Center(
+          child: Padding(
+              padding: EdgeInsets.all(10),
+              child: Text("All clear.", style: TextStyle(fontSize: 16))));
+    }
+    return ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 150),
+        child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: friendRequestList.length,
+            itemBuilder: (context, index) {
+              return AddFriendCard(
+                  friendRequestList[index], firestore, "Accept");
+            }));
   }
 
   @override
   void initState() {
     super.initState();
+    loadFriendRequests();
     _friendSearchController.addListener(_friendSearchControllerListener);
   }
 
@@ -82,7 +147,7 @@ class AddFriendsPageState extends State<AddFriendsPage> {
           elevation: 0,
         ),
       ),
-
+      _buildFriendRequestsList(context),
       // Find friends
       AppBar(
         backgroundColor: Colors.transparent,
@@ -130,16 +195,19 @@ class AddFriendsPageState extends State<AddFriendsPage> {
           )),
       Expanded(
           child: ListView.builder(
-              itemCount: _friendsList.length,
+              itemCount: findFriendsList.length,
               itemBuilder: (BuildContext context, int index) {
                 return AddFriendCard(
                     TsUser(
-                      _friendsList[index].name,
-                      _friendsList[index].username,
-                      _friendsList[index].fbDocId,
-                      _friendsList[index].id,
+                      findFriendsList[index].user.name,
+                      findFriendsList[index].user.username,
+                      findFriendsList[index].user.fbDocId,
+                      findFriendsList[index].user.id,
                     ),
-                    firestore);
+                    firestore,
+                    findFriendsList[index].requested
+                        ? "Requested"
+                        : "Add Friend");
               }))
     ]));
   }
