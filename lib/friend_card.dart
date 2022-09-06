@@ -126,14 +126,21 @@ class _AddFriendCardState extends State<AddFriendCard> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              profilePicture,
-              Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(widget.user.username,
-                        style: TextStyle(fontSize: 18.0)),
-                    Text(widget.user.name, style: TextStyle(fontSize: 14.0)),
-                  ]),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  profilePicture,
+                  const SizedBox(width: 12),
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(widget.user.username,
+                            style: TextStyle(fontSize: 18.0)),
+                        Text(widget.user.name,
+                            style: TextStyle(fontSize: 14.0)),
+                      ]),
+                ],
+              ),
               TextButton(
                 style: addFriendButtonStyle,
                 onPressed: onAddFriendTapped,
