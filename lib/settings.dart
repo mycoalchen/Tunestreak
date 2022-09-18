@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -150,7 +151,9 @@ class _SettingsState extends State<Settings> {
             "\'s friend doc from this user's friends list");
       }
     });
-    // Delete this user
+    // Delete this user from auth
+
+    // Delete this user from firestore
     await firestore.collection("users").doc(up.fbDocId).delete();
     print("Deleted this user");
     Navigator.of(context).popUntil((route) => route.isFirst);

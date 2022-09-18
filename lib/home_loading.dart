@@ -58,7 +58,6 @@ class _HomeLoadingState extends State<HomeLoading> {
             .then(
           (doc) async {
             params.username = doc.get("username");
-            params.email = doc.get("email");
             params.fbDocId = doc.id;
             params.id = doc.get("id");
             print("Firebase info set");

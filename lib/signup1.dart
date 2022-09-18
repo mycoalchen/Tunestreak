@@ -109,10 +109,9 @@ class _Signup1State extends State<Signup1> {
           } else {
             // Returning user - set User in UserProvider
             final fbUserObject = res.docs[0];
-            // Set email, username, and firebase docId
+            // Set username and firebase docId
             Provider.of<UserProvider>(context, listen: false).setUser(
               fbUserObject.get("username"),
-              fbUserObject.get("email"),
               fbUserObject.id,
             );
             // Set id

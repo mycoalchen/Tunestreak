@@ -27,7 +27,6 @@ class _Signup2State extends State<Signup2> {
 
   final nameController = TextEditingController();
   final usernameController = TextEditingController();
-  final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   Future<spt.User> getSpotifyUser() async {
@@ -70,10 +69,10 @@ class _Signup2State extends State<Signup2> {
     UserProvider up = Provider.of<UserProvider>(context, listen: false);
 
     // Create User in Firebase Auth
-    User user = (await FirebaseAuth.instance.createUserWithEmailAndPassword(
-            email: emailController.text, password: passwordController.text))
-        .user!;
-    user.updateDisplayName(username);
+    // User user = (await FirebaseAuth.instance.createUserWithEmailAndPassword(
+    //         email: emailController.text, password: passwordController.text))
+    //     .user!;
+    // user.updateDisplayName(username);
 
     // Give this user a unique time-based id
     String uuid = const Uuid().v1().toString();
@@ -84,7 +83,7 @@ class _Signup2State extends State<Signup2> {
     final userObject = <String, dynamic>{
       'id': uuid,
       'username': username,
-      'email': emailController.text,
+      // 'email': emailController.text,
       'name': nameController.text,
       'sptId': up.spotifyUser!.id,
       'ppSet': false,
@@ -95,7 +94,7 @@ class _Signup2State extends State<Signup2> {
     firestore.collection("users").add(userObject).then((DocumentReference doc) {
       // Set user in provider
       Provider.of<UserProvider>(context, listen: false)
-          .setUser(username, emailController.text, doc.id);
+          .setUser(username, doc.id);
       // Save to local storage to skip login later
       saveSpotifyCredentials(up.spotify!, doc.id);
     });
@@ -117,11 +116,6 @@ class _Signup2State extends State<Signup2> {
     }
   }
 
-  Widget buildEmailFormField() => TextFormField(
-        validator: validateEmail,
-        decoration: inputBoxDecoration('Email', null),
-        controller: emailController,
-      );
   Widget buildUsernameFormField() => TextFormField(
         validator: validateUsername,
         controller: usernameController,
@@ -166,19 +160,6 @@ class _Signup2State extends State<Signup2> {
         ),
       );
 
-  String? validateEmail(String? value) {
-    String pattern =
-        r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]"
-        r"{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]"
-        r"{0,253}[a-zA-Z0-9])?)*$";
-    RegExp regex = RegExp(pattern);
-    if (value == null || value.isEmpty || !regex.hasMatch(value)) {
-      return 'Please enter a valid email.';
-    } else {
-      return null;
-    }
-  }
-
   String? validatePassword(String? value) {
     RegExp regex = // at least 8 characters long
         RegExp(r'^.{8,}$');
@@ -220,7 +201,6 @@ class _Signup2State extends State<Signup2> {
   @override
   void dispose() {
     nameController.dispose();
-    emailController.dispose();
     usernameController.dispose();
     passwordController.dispose();
     super.dispose();
@@ -274,16 +254,16 @@ class _Signup2State extends State<Signup2> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 30.0),
-                        buildEmailFormField(),
-                        const SizedBox(height: 10.0),
+                        // buildEmailFormField(),
+                        // const SizedBox(height: 10.0),
                         buildUsernameFormField(),
                         const SizedBox(height: 10.0),
                         buildNameFormField(),
                         const SizedBox(height: 30.0),
-                        buildPasswordFormField(),
-                        const SizedBox(height: 10.0),
-                        buildConfirmPasswordFormField(),
-                        const SizedBox(height: 30.0),
+                        // buildPasswordFormField(),
+                        // const SizedBox(height: 10.0),
+                        // buildConfirmPasswordFormField(),
+                        // const SizedBox(height: 30.0),
                         buildSignupBotton(),
                       ],
                     ),

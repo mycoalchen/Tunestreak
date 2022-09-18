@@ -8,7 +8,7 @@ import 'utilities.dart';
 class UserProviderParams {
   late spt.SpotifyApi spotify;
   late spt.UserPublic spotifyUser;
-  late String username, email, fbDocId;
+  late String username, fbDocId;
   String id = "default"; // This means the user params were not set/found
   UserProviderParams();
 }
@@ -18,7 +18,6 @@ class UserProvider extends ChangeNotifier {
   late spt.UserPublic? spotifyUser;
 
   late String? username;
-  late String? email;
   late String? fbDocId;
   late String? id;
 
@@ -34,7 +33,6 @@ class UserProvider extends ChangeNotifier {
     spotify = params.spotify;
     spotifyUser = params.spotifyUser;
     username = params.username;
-    email = params.email;
     fbDocId = params.fbDocId;
     id = params.id;
     notifyListeners();
@@ -52,7 +50,6 @@ class UserProvider extends ChangeNotifier {
     spotify = null;
     spotifyUser = null;
     username = null;
-    email = null;
     fbDocId = null;
     id = null;
     friendsList = List<TsUser>.empty(growable: true);
@@ -77,9 +74,8 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setUser(String newUsername, String newEmail, String newFbDocId) {
+  void setUser(String newUsername, String newFbDocId) {
     username = newUsername;
-    email = newEmail;
     fbDocId = newFbDocId;
     notifyListeners();
   }
